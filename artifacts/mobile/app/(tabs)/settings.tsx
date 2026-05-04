@@ -160,6 +160,80 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
+        {/* Store Account Discount */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          STORE ACCOUNT DISCOUNT
+        </Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.markupRow}>
+            <View style={styles.markupInfo}>
+              <Feather name="scissors" size={16} color={colors.success} />
+              <View>
+                <Text style={[styles.markupLabel, { color: colors.foreground }]}>
+                  My Pro Account Discount
+                </Text>
+                <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>
+                  Your % off retail at HD / Lowe's
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.markupInput,
+                { borderColor: colors.success, backgroundColor: colors.success + "12" },
+              ]}
+            >
+              <TextInput
+                style={[styles.markupValue, { color: colors.success }]}
+                value={form.contractorDiscount.toString()}
+                onChangeText={(v) => {
+                  const n = parseFloat(v);
+                  if (!isNaN(n)) setForm((f) => ({ ...f, contractorDiscount: n }));
+                  else if (v === "" || v === ".") setForm((f) => ({ ...f, contractorDiscount: 0 }));
+                }}
+                keyboardType="decimal-pad"
+                selectTextOnFocus
+              />
+              <Text style={[styles.markupPct, { color: colors.success }]}>%</Text>
+            </View>
+          </View>
+          <View style={[styles.presetRow, { borderTopColor: colors.border }]}>
+            {[0, 5, 10, 12, 15, 20].map((pct) => (
+              <TouchableOpacity
+                key={pct}
+                style={[
+                  styles.presetBtn,
+                  {
+                    backgroundColor:
+                      form.contractorDiscount === pct ? colors.success : colors.secondary,
+                  },
+                ]}
+                onPress={() => setForm((f) => ({ ...f, contractorDiscount: pct }))}
+              >
+                <Text
+                  style={[
+                    styles.presetText,
+                    {
+                      color:
+                        form.contractorDiscount === pct
+                          ? "#FFFFFF"
+                          : colors.foreground,
+                    },
+                  ]}
+                >
+                  {pct === 0 ? "None" : `${pct}%`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="info" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
+            When set, product prices in search show your actual cost — not the retail price — and auto-fill that lower amount when adding to a quote.
+          </Text>
+        </View>
+
         {/* Default Markup */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
           DEFAULT MARKUP

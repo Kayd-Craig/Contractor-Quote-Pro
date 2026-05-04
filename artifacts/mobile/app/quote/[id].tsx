@@ -442,6 +442,7 @@ export default function QuoteDetailScreen() {
           mode={addMode}
           quoteId={quote.id}
           defaultMarkup={settings.defaultMarkup}
+          contractorDiscount={settings.contractorDiscount ?? 0}
           onClose={() => setAddMode(null)}
           onAdd={(item) => {
             addLineItem(quote.id, item);
@@ -562,6 +563,7 @@ function AddItemModal({
   mode,
   quoteId,
   defaultMarkup,
+  contractorDiscount,
   onClose,
   onAdd,
   colors,
@@ -570,6 +572,7 @@ function AddItemModal({
   mode: "material" | "labor";
   quoteId: string;
   defaultMarkup: number;
+  contractorDiscount: number;
   onClose: () => void;
   onAdd: (item: Omit<LineItem, "id">) => void;
   colors: ReturnType<typeof useColors>;
@@ -595,7 +598,12 @@ function AddItemModal({
   function handleSelectProduct(p: Product) {
     setSelectedProduct(p);
     setDescription(p.name);
-    setUnitPrice((p.contractorPrice ?? p.price).toFixed(2));
+    const basePrice = p.contractorPrice ?? p.price;
+    const myPrice =
+      contractorDiscount > 0
+        ? basePrice * (1 - contractorDiscount / 100)
+        : basePrice;
+    setUnitPrice(myPrice.toFixed(2));
     setUnit(p.unit);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
@@ -701,6 +709,7 @@ function AddItemModal({
                           key={p.id}
                           product={p as Product}
                           compact
+                          contractorDiscount={contractorDiscount}
                           onAdd={handleSelectProduct}
                         />
                       ))}

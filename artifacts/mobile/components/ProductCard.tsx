@@ -21,9 +21,10 @@ interface Props {
   product: Product;
   onAdd?: (product: Product) => void;
   compact?: boolean;
+  contractorDiscount?: number;
 }
 
-export function ProductCard({ product, onAdd, compact }: Props) {
+export function ProductCard({ product, onAdd, compact, contractorDiscount = 0 }: Props) {
   const colors = useColors();
 
   const storeColor =
@@ -31,7 +32,12 @@ export function ProductCard({ product, onAdd, compact }: Props) {
   const storeName =
     product.store === "homedepot" ? "Home Depot" : "Lowe's";
 
-  const displayPrice = product.contractorPrice ?? product.price;
+  const retailPrice = product.contractorPrice ?? product.price;
+  const hasAccountDiscount = contractorDiscount > 0;
+  const yourCost = hasAccountDiscount
+    ? retailPrice * (1 - contractorDiscount / 100)
+    : retailPrice;
+  const savingsAmount = retailPrice - yourCost;
 
   return (
     <View
@@ -56,6 +62,14 @@ export function ProductCard({ product, onAdd, compact }: Props) {
               </Text>
             </View>
           )}
+          {hasAccountDiscount && (
+            <View style={[styles.discountBadge, { backgroundColor: colors.success + "18" }]}>
+              <Feather name="scissors" size={9} color={colors.success} />
+              <Text style={[styles.discountBadgeText, { color: colors.success }]}>
+                {contractorDiscount}% off
+              </Text>
+            </View>
+          )}
         </View>
 
         <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={2}>
@@ -65,21 +79,52 @@ export function ProductCard({ product, onAdd, compact }: Props) {
           {product.brand} · SKU {product.sku}
         </Text>
 
-        <View style={styles.priceRow}>
-          <View>
-            <Text style={[styles.price, { color: colors.primary }]}>
-              ${displayPrice.toFixed(2)}
-            </Text>
-            <Text style={[styles.perUnit, { color: colors.mutedForeground }]}>
-              per {product.unit}
-            </Text>
-          </View>
-          {product.contractorPrice && (
-            <View style={[styles.proTag, { backgroundColor: colors.accent + "15" }]}>
-              <Feather name="shield" size={11} color={colors.accent} />
-              <Text style={[styles.proTagText, { color: colors.accent }]}>
-                Pro Price
-              </Text>
+        <View style={styles.priceBlock}>
+          {hasAccountDiscount ? (
+            <View style={styles.discountPriceRow}>
+              <View>
+                <Text style={[styles.yourCostLabel, { color: colors.success }]}>
+                  Your Cost
+                </Text>
+                <View style={styles.yourCostRow}>
+                  <Text style={[styles.yourCostPrice, { color: colors.success }]}>
+                    ${yourCost.toFixed(2)}
+                  </Text>
+                  <Text style={[styles.perUnit, { color: colors.mutedForeground }]}>
+                    /{product.unit}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.retailBlock}>
+                <Text style={[styles.retailLabel, { color: colors.mutedForeground }]}>
+                  Retail
+                </Text>
+                <Text style={[styles.retailPrice, { color: colors.mutedForeground }]}>
+                  ${retailPrice.toFixed(2)}
+                </Text>
+                <Text style={[styles.savingsText, { color: colors.success }]}>
+                  save ${savingsAmount.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.priceRow}>
+              <View>
+                <Text style={[styles.price, { color: colors.primary }]}>
+                  ${retailPrice.toFixed(2)}
+                </Text>
+                <Text style={[styles.perUnit, { color: colors.mutedForeground }]}>
+                  per {product.unit}
+                </Text>
+              </View>
+              {product.contractorPrice && (
+                <View style={[styles.proTag, { backgroundColor: colors.accent + "15" }]}>
+                  <Feather name="shield" size={11} color={colors.accent} />
+                  <Text style={[styles.proTagText, { color: colors.accent }]}>
+                    Pro Price
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -87,7 +132,10 @@ export function ProductCard({ product, onAdd, compact }: Props) {
 
       {onAdd && (
         <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: product.inStock ? colors.primary : colors.muted }]}
+          style={[
+            styles.addBtn,
+            { backgroundColor: product.inStock ? colors.primary : colors.muted },
+          ]}
           onPress={() => onAdd(product)}
           disabled={!product.inStock}
           activeOpacity={0.8}
@@ -152,6 +200,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_500Medium",
   },
+  discountBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  discountBadgeText: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+  },
   name: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
@@ -162,11 +222,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
+  priceBlock: {
+    marginTop: 6,
+  },
   priceRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 4,
   },
   price: {
     fontSize: 16,
@@ -185,6 +247,43 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   proTagText: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+  },
+  discountPriceRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  yourCostLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.3,
+    marginBottom: 1,
+  },
+  yourCostRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 2,
+  },
+  yourCostPrice: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  retailBlock: {
+    alignItems: "flex-end",
+    gap: 1,
+  },
+  retailLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+  },
+  retailPrice: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    textDecorationLine: "line-through",
+  },
+  savingsText: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },

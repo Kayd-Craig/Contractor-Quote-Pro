@@ -43,6 +43,7 @@ export interface ContractorSettings {
   email: string;
   license: string;
   zipCode: string;
+  contractorDiscount: number;
   defaultMarkup: number;
 }
 
@@ -96,6 +97,7 @@ const defaultSettings: ContractorSettings = {
   email: "",
   license: "",
   zipCode: "",
+  contractorDiscount: 0,
   defaultMarkup: 20,
 };
 

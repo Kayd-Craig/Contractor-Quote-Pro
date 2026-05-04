@@ -280,7 +280,11 @@ export default function SearchScreen() {
               )}
 
               {(data?.products ?? []).map((item) => (
-                <ProductCard key={item.id} product={item as Product} />
+                <ProductCard
+                  key={item.id}
+                  product={item as Product}
+                  contractorDiscount={settings.contractorDiscount ?? 0}
+                />
               ))}
 
               {submitted && (data?.products ?? []).length === 0 && (
