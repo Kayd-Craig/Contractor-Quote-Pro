@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -26,60 +27,54 @@ export default function SettingsScreen() {
 
   const [form, setForm] = useState<ContractorSettings>(settings);
   const [saved, setSaved] = useState(false);
+  const [showLogoPicker, setShowLogoPicker] = useState(false);
 
   useEffect(() => {
     setForm(settings);
   }, [settings]);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom > 0 ? insets.bottom : 16;
 
-  async function handlePickLogo() {
-    Alert.alert("Business Logo", "Choose a source", [
-      {
-        text: "Camera",
-        onPress: async () => {
-          const perm = await ImagePicker.requestCameraPermissionsAsync();
-          if (!perm.granted) {
-            Alert.alert("Permission needed", "Camera access is required to take a photo.");
-            return;
-          }
-          const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-          });
-          if (!result.canceled && result.assets[0]) {
-            setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
-          }
-        },
-      },
-      {
-        text: "Photo Library",
-        onPress: async () => {
-          const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (!perm.granted) {
-            Alert.alert("Permission needed", "Photo library access is required.");
-            return;
-          }
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-          });
-          if (!result.canceled && result.assets[0]) {
-            setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
-          }
-        },
-      },
-      {
-        text: "Remove Logo",
-        style: "destructive",
-        onPress: () => setForm((f) => ({ ...f, logoUri: undefined })),
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+  async function handleCamera() {
+    setShowLogoPicker(false);
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Camera access is required to take a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+    }
+  }
+
+  async function handleLibrary() {
+    setShowLogoPicker(false);
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Photo library access is required.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+    }
+  }
+
+  function handleRemoveLogo() {
+    setShowLogoPicker(false);
+    setForm((f) => ({ ...f, logoUri: undefined }));
   }
 
   function handleSave() {
@@ -143,7 +138,7 @@ export default function SettingsScreen() {
             autoCapitalize="words"
             autoCorrect={false}
           />
-          <TouchableOpacity style={styles.logoRow} onPress={handlePickLogo} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.logoRow} onPress={() => setShowLogoPicker(true)} activeOpacity={0.8}>
             {form.logoUri ? (
               <>
                 <Image source={{ uri: form.logoUri }} style={styles.logoPreview} resizeMode="contain" />
@@ -408,6 +403,81 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Logo picker bottom sheet */}
+      <Modal
+        visible={showLogoPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLogoPicker(false)}
+      >
+        <View style={styles.pickerOverlay}>
+          <TouchableOpacity style={styles.pickerBackdrop} onPress={() => setShowLogoPicker(false)} />
+          <View style={[styles.pickerSheet, { backgroundColor: colors.card, paddingBottom: bottomPad + 8 }]}>
+            <View style={[styles.pickerHandle, { backgroundColor: colors.border }]} />
+            <Text style={[styles.pickerTitle, { color: colors.foreground }]}>Business Logo</Text>
+
+            {Platform.OS !== "web" && (
+              <TouchableOpacity
+                style={[styles.pickerOption, { borderColor: colors.border }]}
+                onPress={handleCamera}
+                activeOpacity={0.75}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: colors.primary + "15" }]}>
+                  <Feather name="camera" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <Text style={[styles.pickerOptionLabel, { color: colors.foreground }]}>Take a Photo</Text>
+                  <Text style={[styles.pickerOptionSub, { color: colors.mutedForeground }]}>Use your camera</Text>
+                </View>
+                <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.pickerOption, { borderColor: colors.border }]}
+              onPress={handleLibrary}
+              activeOpacity={0.75}
+            >
+              <View style={[styles.pickerOptionIcon, { backgroundColor: colors.accent + "15" }]}>
+                <Feather name="image" size={20} color={colors.accent} />
+              </View>
+              <View style={styles.pickerOptionText}>
+                <Text style={[styles.pickerOptionLabel, { color: colors.foreground }]}>
+                  {Platform.OS === "web" ? "Choose a File" : "Photo Library"}
+                </Text>
+                <Text style={[styles.pickerOptionSub, { color: colors.mutedForeground }]}>
+                  {Platform.OS === "web" ? "Upload from your device" : "Pick from your photos"}
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
+
+            {form.logoUri ? (
+              <TouchableOpacity
+                style={[styles.pickerOption, { borderColor: colors.border }]}
+                onPress={handleRemoveLogo}
+                activeOpacity={0.75}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: colors.destructive + "15" }]}>
+                  <Feather name="trash-2" size={20} color={colors.destructive} />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <Text style={[styles.pickerOptionLabel, { color: colors.destructive }]}>Remove Logo</Text>
+                  <Text style={[styles.pickerOptionSub, { color: colors.mutedForeground }]}>Clear the current logo</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            <TouchableOpacity
+              style={[styles.pickerCancel, { backgroundColor: colors.secondary, borderColor: colors.border }]}
+              onPress={() => setShowLogoPicker(false)}
+            >
+              <Text style={[styles.pickerCancelText, { color: colors.foreground }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -689,5 +759,71 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     lineHeight: 17,
+  },
+
+  pickerOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  pickerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  pickerSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  pickerHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 4,
+  },
+  pickerTitle: {
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  pickerOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  pickerOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pickerOptionText: { flex: 1, gap: 2 },
+  pickerOptionLabel: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
+  pickerOptionSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+  },
+  pickerCancel: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  pickerCancelText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
   },
 });
