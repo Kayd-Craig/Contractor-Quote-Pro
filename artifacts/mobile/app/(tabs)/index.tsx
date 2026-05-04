@@ -38,21 +38,25 @@ export default function QuotesScreen() {
   }
 
   function handleDelete(quote: Quote) {
-    Alert.alert(
-      "Delete Quote",
-      `Delete the quote for ${quote.customerName}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            deleteQuote(quote.id);
-          },
-        },
-      ]
-    );
+    const doDelete = () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      deleteQuote(quote.id);
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm(`Delete the quote for ${quote.customerName}?`)) {
+        doDelete();
+      }
+    } else {
+      Alert.alert(
+        "Delete Quote",
+        `Delete the quote for ${quote.customerName}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete", style: "destructive", onPress: doDelete },
+        ]
+      );
+    }
   }
 
   const FILTERS: { label: string; value: Quote["status"] | "all" }[] = [

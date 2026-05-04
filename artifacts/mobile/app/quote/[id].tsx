@@ -79,34 +79,44 @@ export default function QuoteDetailScreen() {
     declined: colors.destructive,
   };
 
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
+
   function handleStatusChange() {
-    const labels = STATUS_OPTIONS.map((s) => s.charAt(0).toUpperCase() + s.slice(1));
-    Alert.alert("Update Status", "Select a status for this quote:", [
-      ...labels.map((label, i) => ({
-        text: label,
-        onPress: () => updateQuote(quote.id, { status: STATUS_OPTIONS[i] }),
-      })),
-      { text: "Cancel", style: "cancel" as const },
-    ]);
+    if (Platform.OS === "web") {
+      setShowStatusPicker(true);
+    } else {
+      const labels = STATUS_OPTIONS.map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+      Alert.alert("Update Status", "Select a status for this quote:", [
+        ...labels.map((label, i) => ({
+          text: label,
+          onPress: () => updateQuote(quote.id, { status: STATUS_OPTIONS[i] }),
+        })),
+        { text: "Cancel", style: "cancel" as const },
+      ]);
+    }
   }
 
   function handleDelete() {
-    Alert.alert(
-      "Delete Quote",
-      `Delete the quote for ${quote.customerName}? This cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            deleteQuote(quote.id);
-            router.back();
-          },
-        },
-      ]
-    );
+    const doDelete = () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      deleteQuote(quote.id);
+      router.back();
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm(`Delete the quote for ${quote.customerName}? This cannot be undone.`)) {
+        doDelete();
+      }
+    } else {
+      Alert.alert(
+        "Delete Quote",
+        `Delete the quote for ${quote.customerName}? This cannot be undone.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete", style: "destructive", onPress: doDelete },
+        ]
+      );
+    }
   }
 
   return (
@@ -478,6 +488,49 @@ export default function QuoteDetailScreen() {
           colors={colors}
           insets={insets}
         />
+      )}
+
+      {/* Status picker modal (web) */}
+      {Platform.OS === "web" && (
+        <Modal
+          visible={showStatusPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowStatusPicker(false)}
+        >
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" }}
+            activeOpacity={1}
+            onPress={() => setShowStatusPicker(false)}
+          >
+            <View style={{ backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 32, paddingTop: 8 }}>
+              <View style={{ alignItems: "center", paddingVertical: 8 }}>
+                <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: "#ccc" }} />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: "700", textAlign: "center", marginBottom: 12, color: colors.text }}>Update Status</Text>
+              {STATUS_OPTIONS.map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={{ paddingVertical: 14, paddingHorizontal: 24, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}
+                  onPress={() => {
+                    updateQuote(quote.id, { status });
+                    setShowStatusPicker(false);
+                  }}
+                >
+                  <Text style={{ fontSize: 16, color: STATUS_COLORS[status] || colors.text, fontWeight: quote.status === status ? "700" : "400" }}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={{ paddingVertical: 14, paddingHorizontal: 24, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}
+                onPress={() => setShowStatusPicker(false)}
+              >
+                <Text style={{ fontSize: 16, color: colors.mutedForeground, textAlign: "center" }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       )}
 
       {/* Send modal */}

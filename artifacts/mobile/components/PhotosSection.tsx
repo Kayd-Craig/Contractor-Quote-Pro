@@ -83,17 +83,21 @@ export function PhotosSection({ quoteId, photos, onAdd, onRemove }: Props) {
   }
 
   function handleDeletePhoto(uri: string) {
-    Alert.alert("Remove Photo", "Remove this photo from the quote?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          onRemove(uri);
-        },
-      },
-    ]);
+    const doRemove = () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onRemove(uri);
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm("Remove this photo from the quote?")) {
+        doRemove();
+      }
+    } else {
+      Alert.alert("Remove Photo", "Remove this photo from the quote?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Remove", style: "destructive", onPress: doRemove },
+      ]);
+    }
   }
 
   return (
