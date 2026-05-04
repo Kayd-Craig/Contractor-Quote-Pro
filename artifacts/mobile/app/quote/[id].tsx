@@ -48,6 +48,7 @@ export default function QuoteDetailScreen() {
   const [showDiscountEditor, setShowDiscountEditor] = useState(false);
   const [discountInput, setDiscountInput] = useState("");
   const [discountTypeLocal, setDiscountTypeLocal] = useState<"percent" | "flat">("percent");
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
@@ -86,8 +87,6 @@ export default function QuoteDetailScreen() {
     declined: colors.destructive,
   };
 
-  const [showStatusPicker, setShowStatusPicker] = useState(false);
-
   function handleStatusChange() {
     if (Platform.OS === "web") {
       setShowStatusPicker(true);
@@ -107,7 +106,11 @@ export default function QuoteDetailScreen() {
     const doDelete = () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       deleteQuote(quote.id);
-      router.replace("/");
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.navigate("/");
+      }
     };
 
     if (Platform.OS === "web") {
