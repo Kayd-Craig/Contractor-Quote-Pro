@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
+import { generateQuotePdf } from "./quote-pdf.js";
 
 const router = Router();
 
@@ -70,8 +71,6 @@ function buildQuoteText(body: {
   const materials = body.lineItems.filter((i) => i.type === "material");
   const labor = body.lineItems.filter((i) => i.type === "labor");
 
-  // Distribute markup proportionally into subtotals so the customer
-  // never sees a raw markup line or percentage.
   const baseTotal = body.materialSubtotal + body.laborSubtotal;
   const materialFraction = baseTotal > 0 ? body.materialSubtotal / baseTotal : 0;
   const laborFraction = baseTotal > 0 ? body.laborSubtotal / baseTotal : 0;
@@ -128,7 +127,7 @@ function buildQuoteText(body: {
   return lines.join("\n");
 }
 
-router.post("/quotes/send", (req: Request, res: Response) => {
+router.post("/quotes/send", async (req: Request, res: Response) => {
   const body = req.body;
 
   if (!body.customerName || !body.jobDescription || !body.contractorName) {
@@ -137,11 +136,43 @@ router.post("/quotes/send", (req: Request, res: Response) => {
 
   const quoteText = buildQuoteText(body);
 
-  return res.json({
-    success: true,
-    message: "Quote formatted successfully",
-    quoteText,
-  });
+  try {
+    const pdfBuffer = await generateQuotePdf({
+      customerName: body.customerName,
+      customerEmail: body.customerEmail,
+      customerPhone: body.customerPhone,
+      jobAddress: body.jobAddress,
+      jobDescription: body.jobDescription,
+      businessName: body.businessName,
+      contractorName: body.contractorName,
+      contractorPhone: body.contractorPhone,
+      contractorEmail: body.contractorEmail,
+      contractorLicense: body.contractorLicense,
+      lineItems: body.lineItems,
+      materialSubtotal: body.materialSubtotal,
+      laborSubtotal: body.laborSubtotal,
+      markupAmount: body.markupAmount,
+      discountAmount: body.discountAmount,
+      discountType: body.discountType,
+      taxRate: body.taxRate,
+      taxAmount: body.taxAmount,
+      total: body.total,
+      quoteFont: body.quoteFont,
+      quoteTemplate: body.quoteTemplate,
+    });
+
+    const pdfBase64 = pdfBuffer.toString("base64");
+
+    return res.json({
+      success: true,
+      message: "Quote formatted successfully",
+      quoteText,
+      pdfBase64,
+    });
+  } catch (err) {
+    req.log.error({ err }, "PDF generation failed");
+    return res.status(500).json({ error: "Failed to generate PDF" });
+  }
 });
 
 export default router;

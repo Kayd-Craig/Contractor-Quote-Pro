@@ -15,5 +15,8 @@ export * from "./quoteLineItemType";
 export * from "./searchProductsParams";
 export * from "./searchProductsStore";
 export * from "./sendQuoteRequest";
+export * from "./sendQuoteRequestDiscountType";
+export * from "./sendQuoteRequestQuoteFont";
+export * from "./sendQuoteRequestQuoteTemplate";
 export * from "./sendQuoteRequestSendMethod";
 export * from "./sendQuoteResult";

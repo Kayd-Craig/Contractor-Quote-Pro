@@ -40,7 +40,8 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - Job-site photos via expo-image-picker
 - Customer history/auto-fill from past quotes
 - Paper-style quote preview with **4 font options** (Classic/Modern/Elegant/Clean) and **4 template styles** (Typewriter/Professional/Bold/Minimal) — stored per-quote
-- Send quotes via native share sheet
+- Send quotes as **PDF** via native share sheet (generated server-side with pdfkit, matching template/font styles)
+- Web fallback: PDF auto-downloads via blob URL
 - Quote deletion (long-press from list, trash icon from detail)
 - Business logo upload (bottom sheet picker, works on web + native)
 

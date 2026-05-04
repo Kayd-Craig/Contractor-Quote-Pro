@@ -59,6 +59,15 @@ export interface QuoteLineItem {
   sku?: string | null;
 }
 
+export type SendQuoteRequestDiscountType =
+  | (typeof SendQuoteRequestDiscountType)[keyof typeof SendQuoteRequestDiscountType]
+  | null;
+
+export const SendQuoteRequestDiscountType = {
+  percent: "percent",
+  flat: "flat",
+} as const;
+
 export type SendQuoteRequestSendMethod =
   (typeof SendQuoteRequestSendMethod)[keyof typeof SendQuoteRequestSendMethod];
 
@@ -68,21 +77,49 @@ export const SendQuoteRequestSendMethod = {
   both: "both",
 } as const;
 
+export type SendQuoteRequestQuoteFont =
+  (typeof SendQuoteRequestQuoteFont)[keyof typeof SendQuoteRequestQuoteFont];
+
+export const SendQuoteRequestQuoteFont = {
+  classic: "classic",
+  modern: "modern",
+  elegant: "elegant",
+  clean: "clean",
+} as const;
+
+export type SendQuoteRequestQuoteTemplate =
+  (typeof SendQuoteRequestQuoteTemplate)[keyof typeof SendQuoteRequestQuoteTemplate];
+
+export const SendQuoteRequestQuoteTemplate = {
+  typewriter: "typewriter",
+  professional: "professional",
+  bold: "bold",
+  minimal: "minimal",
+} as const;
+
 export interface SendQuoteRequest {
   customerName: string;
   customerEmail?: string | null;
   customerPhone?: string | null;
   jobAddress?: string | null;
   jobDescription: string;
+  businessName?: string | null;
   contractorName: string;
   contractorPhone?: string | null;
   contractorEmail?: string | null;
+  contractorLicense?: string | null;
   lineItems: QuoteLineItem[];
   materialSubtotal: number;
   laborSubtotal: number;
   markupAmount: number;
+  discountAmount?: number | null;
+  discountType?: SendQuoteRequestDiscountType;
+  taxRate?: number | null;
+  taxAmount?: number | null;
   total: number;
   sendMethod: SendQuoteRequestSendMethod;
+  quoteFont?: SendQuoteRequestQuoteFont;
+  quoteTemplate?: SendQuoteRequestQuoteTemplate;
 }
 
 export interface SendQuoteResult {
@@ -90,6 +127,8 @@ export interface SendQuoteResult {
   message: string;
   /** Formatted plain-text quote for sharing */
   quoteText: string;
+  /** Base64-encoded PDF file */
+  pdfBase64: string;
 }
 
 export type SearchProductsParams = {

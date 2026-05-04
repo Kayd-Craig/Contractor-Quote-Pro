@@ -191,12 +191,18 @@ components:
           nullable: true
         jobDescription:
           type: string
+        businessName:
+          type: string
+          nullable: true
         contractorName:
           type: string
         contractorPhone:
           type: string
           nullable: true
         contractorEmail:
+          type: string
+          nullable: true
+        contractorLicense:
           type: string
           nullable: true
         lineItems:
@@ -209,11 +215,30 @@ components:
           type: number
         markupAmount:
           type: number
+        discountAmount:
+          type: number
+          nullable: true
+        discountType:
+          type: string
+          enum: [percent, flat]
+          nullable: true
+        taxRate:
+          type: number
+          nullable: true
+        taxAmount:
+          type: number
+          nullable: true
         total:
           type: number
         sendMethod:
           type: string
           enum: [email, sms, both]
+        quoteFont:
+          type: string
+          enum: [classic, modern, elegant, clean]
+        quoteTemplate:
+          type: string
+          enum: [typewriter, professional, bold, minimal]
       required:
         - customerName
         - jobDescription
@@ -235,7 +260,11 @@ components:
         quoteText:
           type: string
           description: Formatted plain-text quote for sharing
+        pdfBase64:
+          type: string
+          description: Base64-encoded PDF file
       required:
         - success
         - message
         - quoteText
+        - pdfBase64

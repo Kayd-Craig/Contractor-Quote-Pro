@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { QuoteLineItem } from "./quoteLineItem";
+import type { SendQuoteRequestDiscountType } from "./sendQuoteRequestDiscountType";
+import type { SendQuoteRequestQuoteFont } from "./sendQuoteRequestQuoteFont";
+import type { SendQuoteRequestQuoteTemplate } from "./sendQuoteRequestQuoteTemplate";
 import type { SendQuoteRequestSendMethod } from "./sendQuoteRequestSendMethod";
 
 export interface SendQuoteRequest {
@@ -14,13 +17,21 @@ export interface SendQuoteRequest {
   customerPhone?: string | null;
   jobAddress?: string | null;
   jobDescription: string;
+  businessName?: string | null;
   contractorName: string;
   contractorPhone?: string | null;
   contractorEmail?: string | null;
+  contractorLicense?: string | null;
   lineItems: QuoteLineItem[];
   materialSubtotal: number;
   laborSubtotal: number;
   markupAmount: number;
+  discountAmount?: number | null;
+  discountType?: SendQuoteRequestDiscountType;
+  taxRate?: number | null;
+  taxAmount?: number | null;
   total: number;
   sendMethod: SendQuoteRequestSendMethod;
+  quoteFont?: SendQuoteRequestQuoteFont;
+  quoteTemplate?: SendQuoteRequestQuoteTemplate;
 }

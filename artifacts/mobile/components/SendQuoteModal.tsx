@@ -1,4 +1,10 @@
 import { Feather } from "@expo/vector-icons";
+import {
+  cacheDirectory,
+  EncodingType,
+  writeAsStringAsync,
+} from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -63,6 +69,7 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           contractorName: settings.name || "Your Contractor",
           contractorPhone: settings.phone,
           contractorEmail: settings.email,
+          contractorLicense: settings.license || undefined,
           lineItems: quote.lineItems.map((item) => ({
             id: item.id,
             type: item.type,
@@ -79,12 +86,19 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           markupAmount: totals.markupAmount,
           discountAmount: totals.discountAmount > 0 ? totals.discountAmount : undefined,
           discountType: quote.discountType ?? undefined,
+          taxRate: taxRate > 0 ? taxRate : undefined,
+          taxAmount: totals.taxAmount > 0 ? totals.taxAmount : undefined,
           total: totals.total,
           sendMethod: method,
+          quoteFont: quote.quoteFont || settings.defaultQuoteFont || "modern",
+          quoteTemplate: quote.quoteTemplate || settings.defaultQuoteTemplate || "professional",
         },
       });
 
-      if (result.success) {
+      if (result.success && result.pdfBase64) {
+        await sharePdf(result.pdfBase64, quote.customerName);
+        onSent();
+      } else if (result.success) {
         await Share.share({
           message: result.quoteText,
           title: `Quote for ${quote.customerName}`,
@@ -93,6 +107,45 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
       }
     } catch (err) {
       Alert.alert("Error", "Could not send the quote. Please try again.");
+    }
+  }
+
+  async function sharePdf(base64: string, customerName: string) {
+    const safeName = customerName.replace(/[^a-zA-Z0-9]/g, "_");
+    const fileName = `Quote_${safeName}_${Date.now()}.pdf`;
+
+    if (Platform.OS === "web") {
+      const byteChars = atob(base64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    const fileUri = `${cacheDirectory}${fileName}`;
+    await writeAsStringAsync(fileUri, base64, {
+      encoding: EncodingType.Base64,
+    });
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "application/pdf",
+        dialogTitle: `Quote for ${customerName}`,
+        UTI: "com.adobe.pdf",
+      });
+    } else {
+      Alert.alert("Saved", `PDF saved to ${fileUri}`);
     }
   }
 
@@ -139,6 +192,13 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
             template={quote.quoteTemplate || settings.defaultQuoteTemplate || "typewriter"}
           />
 
+          <View style={[styles.pdfBadge, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+            <Feather name="file-text" size={14} color={colors.primary} />
+            <Text style={[styles.pdfBadgeText, { color: colors.primary }]}>
+              Will be sent as a professional PDF
+            </Text>
+          </View>
+
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
             SEND VIA
           </Text>
@@ -180,11 +240,6 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
             ))}
           </View>
 
-          <Text style={[styles.hintText, { color: colors.mutedForeground }]}>
-            Tapping "Send" will open your device's share sheet with the
-            formatted quote ready to send.
-          </Text>
-
           <TouchableOpacity
             style={[
               styles.sendBtn,
@@ -200,7 +255,7 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
               <>
                 <Feather name="send" size={18} color={colors.primaryForeground} />
                 <Text style={[styles.sendBtnText, { color: colors.primaryForeground }]}>
-                  Send Quote
+                  Send Quote as PDF
                 </Text>
               </>
             )}
@@ -243,6 +298,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Inter_700Bold",
   },
+  pdfBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  pdfBadgeText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
   sectionLabel: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
@@ -265,12 +333,6 @@ const styles = StyleSheet.create({
   methodLabel: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-  },
-  hintText: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 17,
-    textAlign: "center",
   },
   sendBtn: {
     flexDirection: "row",

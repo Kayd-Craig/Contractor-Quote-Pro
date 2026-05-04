@@ -62,9 +62,11 @@ export const SendQuoteBody = zod.object({
   customerPhone: zod.string().nullish(),
   jobAddress: zod.string().nullish(),
   jobDescription: zod.string(),
+  businessName: zod.string().nullish(),
   contractorName: zod.string(),
   contractorPhone: zod.string().nullish(),
   contractorEmail: zod.string().nullish(),
+  contractorLicense: zod.string().nullish(),
   lineItems: zod.array(
     zod.object({
       id: zod.string(),
@@ -81,12 +83,21 @@ export const SendQuoteBody = zod.object({
   materialSubtotal: zod.number(),
   laborSubtotal: zod.number(),
   markupAmount: zod.number(),
+  discountAmount: zod.number().nullish(),
+  discountType: zod.enum(["percent", "flat"]).nullish(),
+  taxRate: zod.number().nullish(),
+  taxAmount: zod.number().nullish(),
   total: zod.number(),
   sendMethod: zod.enum(["email", "sms", "both"]),
+  quoteFont: zod.enum(["classic", "modern", "elegant", "clean"]).optional(),
+  quoteTemplate: zod
+    .enum(["typewriter", "professional", "bold", "minimal"])
+    .optional(),
 });
 
 export const SendQuoteResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
   quoteText: zod.string().describe("Formatted plain-text quote for sharing"),
+  pdfBase64: zod.string().describe("Base64-encoded PDF file"),
 });

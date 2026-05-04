@@ -11,4 +11,6 @@ export interface SendQuoteResult {
   message: string;
   /** Formatted plain-text quote for sharing */
   quoteText: string;
+  /** Base64-encoded PDF file */
+  pdfBase64: string;
 }
