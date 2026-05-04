@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
+import { ScheduleCalendar } from "@/components/ScheduleCalendar";
 import { ScheduleManager } from "@/components/ScheduleManager";
 import type { ContractorSettings, PreferredStore, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes, DEFAULT_WEEKLY_SCHEDULE, DAYS_ORDER, DAY_LABELS } from "@/context/QuoteContext";
@@ -29,12 +30,13 @@ import { useConnectOnboard, getConnectDashboard, useGetConnectBalance, useGetCon
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { settings, updateSettings } = useQuotes();
+  const { settings, updateSettings, quotes } = useQuotes();
 
   const [form, setForm] = useState<ContractorSettings>(settings);
   const [saved, setSaved] = useState(false);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
@@ -369,6 +371,30 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
           AVAILABILITY SCHEDULE
         </Text>
+        <TouchableOpacity
+          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 8 }]}
+          onPress={() => setShowCalendar(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.scheduleRow}>
+            <View style={[styles.scheduleIcon, { backgroundColor: colors.accent + "18" }]}>
+              <Feather name="grid" size={20} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.scheduleTitle, { color: colors.foreground }]}>
+                View Month Calendar
+              </Text>
+              <Text style={[styles.scheduleSub, { color: colors.mutedForeground }]}>
+                {(() => {
+                  const scheduledCount = quotes.filter((q) => q.scheduledDate).length;
+                  if (scheduledCount === 0) return "See all upcoming jobs at a glance";
+                  return `${scheduledCount} scheduled job${scheduledCount === 1 ? "" : "s"} total`;
+                })()}
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => setShowSchedule(true)}
@@ -837,6 +863,9 @@ export default function SettingsScreen() {
 
       {/* Schedule Manager */}
       <ScheduleManager visible={showSchedule} onClose={() => setShowSchedule(false)} />
+
+      {/* Schedule Calendar */}
+      <ScheduleCalendar visible={showCalendar} onClose={() => setShowCalendar(false)} />
 
       {/* Logo picker bottom sheet */}
       <Modal
