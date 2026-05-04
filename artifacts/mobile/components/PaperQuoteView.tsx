@@ -205,16 +205,6 @@ export function PaperQuoteView({
           </Text>
         </View>
       )}
-      {totals.markupAmount > 0 && (
-        <View style={styles.totalRow}>
-          <Text style={[styles.mono, styles.totalLabel]}>
-            Markup ({totals.markupPercent}%)
-          </Text>
-          <Text style={[styles.mono, styles.totalValue]}>
-            +${totals.markupAmount.toFixed(2)}
-          </Text>
-        </View>
-      )}
       {totals.discountAmount > 0 && (
         <View style={styles.totalRow}>
           <Text style={[styles.mono, styles.totalLabel]}>Discount</Text>
