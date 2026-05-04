@@ -132,6 +132,7 @@ export default function QuotesScreen() {
           <QuoteCard
             quote={item}
             onPress={() => router.push(`/quote/${item.id}`)}
+            onLongPress={() => handleDelete(item)}
           />
         )}
         ListEmptyComponent={

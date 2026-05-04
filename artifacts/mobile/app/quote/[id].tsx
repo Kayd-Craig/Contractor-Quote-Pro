@@ -34,7 +34,7 @@ export default function QuoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { quotes, settings, deleteLineItem, addLineItem, addPhoto, removePhoto, updateQuote, calculateTotals } =
+  const { quotes, settings, deleteLineItem, deleteQuote, addLineItem, addPhoto, removePhoto, updateQuote, calculateTotals } =
     useQuotes();
 
   const quote = quotes.find((q) => q.id === id);
@@ -91,20 +91,22 @@ export default function QuoteDetailScreen() {
   }
 
   function handleDelete() {
-    Alert.alert("Delete Quote", "This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          router.back();
-          setTimeout(() => {
-            const { deleteQuote } = require("@/context/QuoteContext");
-          }, 100);
+    Alert.alert(
+      "Delete Quote",
+      `Delete the quote for ${quote.customerName}? This cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            deleteQuote(quote.id);
+            router.back();
+          },
         },
-      },
-    ]);
+      ]
+    );
   }
 
   return (
@@ -149,6 +151,12 @@ export default function QuoteDetailScreen() {
             onPress={() => setShowPreview(true)}
           >
             <Feather name="file-text" size={16} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, { backgroundColor: colors.destructive + "18", borderColor: colors.destructive + "40" }]}
+            onPress={handleDelete}
+          >
+            <Feather name="trash-2" size={16} color={colors.destructive} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.sendBtn, { backgroundColor: colors.primary }]}

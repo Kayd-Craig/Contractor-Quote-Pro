@@ -9,6 +9,7 @@ import { useColors } from "@/hooks/useColors";
 interface Props {
   quote: Quote;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
 const STATUS_LABELS: Record<Quote["status"], string> = {
@@ -18,7 +19,7 @@ const STATUS_LABELS: Record<Quote["status"], string> = {
   declined: "Declined",
 };
 
-export function QuoteCard({ quote, onPress }: Props) {
+export function QuoteCard({ quote, onPress, onLongPress }: Props) {
   const colors = useColors();
   const { calculateTotals } = useQuotes();
   const totals = calculateTotals(quote.lineItems);
@@ -40,6 +41,8 @@ export function QuoteCard({ quote, onPress }: Props) {
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={500}
       activeOpacity={0.7}
     >
       <View style={styles.header}>
