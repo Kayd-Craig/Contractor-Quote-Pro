@@ -16,7 +16,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { ContractorSettings } from "@/context/QuoteContext";
+import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
+import type { ContractorSettings, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -369,6 +370,97 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        {/* Quote Style */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          DEFAULT QUOTE STYLE
+        </Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.styleSection}>
+            <View style={styles.styleSectionHeader}>
+              <Feather name="layout" size={16} color={colors.primary} />
+              <View>
+                <Text style={[styles.markupLabel, { color: colors.foreground }]}>Template</Text>
+                <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>Layout and color scheme</Text>
+              </View>
+            </View>
+            <View style={styles.styleChipRow}>
+              {TEMPLATE_OPTIONS.map((opt) => {
+                const active = (form.defaultQuoteTemplate || "typewriter") === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[
+                      styles.styleChip,
+                      {
+                        borderColor: active ? colors.primary : colors.border,
+                        backgroundColor: active ? colors.primary + "12" : colors.secondary,
+                      },
+                    ]}
+                    onPress={() => setForm((f) => ({ ...f, defaultQuoteTemplate: opt.key as QuoteTemplate }))}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.templateMini}>
+                      <View style={[styles.templateMiniTop, { backgroundColor: opt.colors[0] }]} />
+                      <View style={[styles.templateMiniLine, { backgroundColor: opt.colors[2] }]} />
+                      <View style={[styles.templateMiniLine, { backgroundColor: opt.colors[2], width: 12 }]} />
+                    </View>
+                    <Text style={[styles.styleChipLabel, { color: active ? colors.primary : colors.foreground }]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+          <View style={[styles.styleDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.styleSection}>
+            <View style={styles.styleSectionHeader}>
+              <Feather name="type" size={16} color={colors.primary} />
+              <View>
+                <Text style={[styles.markupLabel, { color: colors.foreground }]}>Font</Text>
+                <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>Text style on your quotes</Text>
+              </View>
+            </View>
+            <View style={styles.styleChipRow}>
+              {FONT_OPTIONS.map((opt) => {
+                const active = (form.defaultQuoteFont || "classic") === opt.key;
+                const fontFamily =
+                  opt.key === "classic" ? (Platform.OS === "web" ? "Courier New, monospace" : "Courier New")
+                  : opt.key === "elegant" ? (Platform.OS === "web" ? "Georgia, serif" : "Georgia")
+                  : opt.key === "clean" ? (Platform.OS === "web" ? "Helvetica Neue, Arial, sans-serif" : "Helvetica Neue")
+                  : undefined;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[
+                      styles.styleChip,
+                      {
+                        borderColor: active ? colors.primary : colors.border,
+                        backgroundColor: active ? colors.primary + "12" : colors.secondary,
+                      },
+                    ]}
+                    onPress={() => setForm((f) => ({ ...f, defaultQuoteFont: opt.key as QuoteFont }))}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.fontPreviewLetter, { fontFamily, color: active ? colors.primary : colors.foreground }]}>
+                      Aa
+                    </Text>
+                    <Text style={[styles.styleChipLabel, { color: active ? colors.primary : colors.foreground }]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+        <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="info" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
+            New quotes will use this style by default. You can still change the style per-quote from the quote preview screen.
+          </Text>
         </View>
 
         {/* Save */}
@@ -825,5 +917,63 @@ const styles = StyleSheet.create({
   pickerCancelText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
+  },
+
+  styleSection: {
+    padding: 16,
+    gap: 12,
+  },
+  styleSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  styleDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 16,
+  },
+  styleChipRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  styleChip: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  styleChipLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+  },
+  templateMini: {
+    width: 30,
+    height: 20,
+    borderRadius: 3,
+    backgroundColor: "#FFFFFF",
+    padding: 3,
+    gap: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    borderWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.1)",
+  },
+  templateMiniTop: {
+    width: "100%",
+    height: 7,
+    borderRadius: 1,
+  },
+  templateMiniLine: {
+    width: 18,
+    height: 2,
+    borderRadius: 1,
+  },
+  fontPreviewLetter: {
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

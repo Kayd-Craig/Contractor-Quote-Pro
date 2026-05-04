@@ -519,7 +519,7 @@ export default function QuoteDetailScreen() {
               <Text style={styles.stylePickerLabel}>TEMPLATE</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.styleChipsScroll}>
                 {TEMPLATE_OPTIONS.map((opt) => {
-                  const active = (quote.quoteTemplate || "typewriter") === opt.key;
+                  const active = (quote.quoteTemplate || settings.defaultQuoteTemplate || "typewriter") === opt.key;
                   return (
                     <TouchableOpacity
                       key={opt.key}
@@ -542,7 +542,7 @@ export default function QuoteDetailScreen() {
               <Text style={styles.stylePickerLabel}>FONT</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.styleChipsScroll}>
                 {FONT_OPTIONS.map((opt) => {
-                  const active = (quote.quoteFont || "classic") === opt.key;
+                  const active = (quote.quoteFont || settings.defaultQuoteFont || "classic") === opt.key;
                   return (
                     <TouchableOpacity
                       key={opt.key}
@@ -575,8 +575,8 @@ export default function QuoteDetailScreen() {
               settings={settings}
               totals={totals}
               createdAt={quote.createdAt}
-              font={quote.quoteFont || "classic"}
-              template={quote.quoteTemplate || "typewriter"}
+              font={quote.quoteFont || settings.defaultQuoteFont || "classic"}
+              template={quote.quoteTemplate || settings.defaultQuoteTemplate || "typewriter"}
             />
           </ScrollView>
           <TouchableOpacity

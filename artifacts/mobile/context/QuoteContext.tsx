@@ -51,6 +51,8 @@ export interface ContractorSettings {
   contractorDiscount: number;
   defaultMarkup: number;
   logoUri?: string;
+  defaultQuoteFont?: QuoteFont;
+  defaultQuoteTemplate?: QuoteTemplate;
 }
 
 export interface QuoteTotals {
