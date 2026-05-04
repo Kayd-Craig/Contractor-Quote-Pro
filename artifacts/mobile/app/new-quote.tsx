@@ -57,8 +57,7 @@ export default function NewQuoteScreen() {
       jobAddress: jobAddress.trim() || undefined,
       jobDescription: jobDescription.trim() || "Job quote",
     });
-    router.back();
-    setTimeout(() => router.push(`/quote/${quote.id}`), 50);
+    router.replace(`/quote/${quote.id}`);
   }
 
   function handleSelectCustomer(customer: Customer) {

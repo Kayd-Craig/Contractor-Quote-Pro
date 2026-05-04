@@ -107,7 +107,7 @@ export default function QuoteDetailScreen() {
     const doDelete = () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       deleteQuote(quote.id);
-      router.back();
+      router.replace("/");
     };
 
     if (Platform.OS === "web") {
