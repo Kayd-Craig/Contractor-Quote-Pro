@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -30,6 +32,55 @@ export default function SettingsScreen() {
   }, [settings]);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+
+  async function handlePickLogo() {
+    Alert.alert("Business Logo", "Choose a source", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const perm = await ImagePicker.requestCameraPermissionsAsync();
+          if (!perm.granted) {
+            Alert.alert("Permission needed", "Camera access is required to take a photo.");
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+          }
+        },
+      },
+      {
+        text: "Photo Library",
+        onPress: async () => {
+          const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (!perm.granted) {
+            Alert.alert("Permission needed", "Photo library access is required.");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+          }
+        },
+      },
+      {
+        text: "Remove Logo",
+        style: "destructive",
+        onPress: () => setForm((f) => ({ ...f, logoUri: undefined })),
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
 
   function handleSave() {
     if (!form.name.trim()) {
@@ -73,7 +124,7 @@ export default function SettingsScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Business Name — prominent, shown on quotes */}
+        {/* Business Name + Logo — prominent, shown on quotes */}
         <View style={[styles.businessCard, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
           <View style={styles.businessCardHeader}>
             <Feather name="briefcase" size={16} color="rgba(255,255,255,0.8)" />
@@ -92,6 +143,29 @@ export default function SettingsScreen() {
             autoCapitalize="words"
             autoCorrect={false}
           />
+          <TouchableOpacity style={styles.logoRow} onPress={handlePickLogo} activeOpacity={0.8}>
+            {form.logoUri ? (
+              <>
+                <Image source={{ uri: form.logoUri }} style={styles.logoPreview} resizeMode="contain" />
+                <View style={styles.logoMeta}>
+                  <Text style={styles.logoLabel}>Business Logo</Text>
+                  <Text style={styles.logoHint}>Tap to change or remove</Text>
+                </View>
+                <Feather name="edit-2" size={16} color="rgba(255,255,255,0.7)" />
+              </>
+            ) : (
+              <>
+                <View style={styles.logoPlaceholder}>
+                  <Feather name="image" size={22} color="rgba(255,255,255,0.6)" />
+                </View>
+                <View style={styles.logoMeta}>
+                  <Text style={styles.logoLabel}>Add Business Logo</Text>
+                  <Text style={styles.logoHint}>Shows on quotes — tap to upload</Text>
+                </View>
+                <Feather name="plus" size={18} color="rgba(255,255,255,0.7)" />
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Contact Info */}
@@ -442,6 +516,45 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255,255,255,0.4)",
     paddingVertical: 6,
     minHeight: 36,
+  },
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 4,
+    backgroundColor: "rgba(0,0,0,0.15)",
+    borderRadius: 12,
+    padding: 10,
+  },
+  logoPreview: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: "#FFFFFF",
+  },
+  logoPlaceholder: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.35)",
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  logoLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
+  },
+  logoHint: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.65)",
   },
 
   sectionTitle: {

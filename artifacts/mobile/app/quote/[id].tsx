@@ -5,6 +5,7 @@ import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   Platform,
   ScrollView,
@@ -155,9 +156,17 @@ export default function QuoteDetailScreen() {
         ]}
       >
         {/* Business / Contractor banner */}
-        {(settings.businessName || settings.name) && (
+        {(settings.businessName || settings.name || settings.logoUri) && (
           <View style={[styles.businessBanner, { backgroundColor: colors.accent }]}>
-            <Feather name="briefcase" size={14} color="rgba(255,255,255,0.7)" />
+            {settings.logoUri ? (
+              <Image
+                source={{ uri: settings.logoUri }}
+                style={styles.businessBannerLogo}
+                resizeMode="contain"
+              />
+            ) : (
+              <Feather name="briefcase" size={14} color="rgba(255,255,255,0.7)" />
+            )}
             <View style={styles.businessBannerText}>
               {settings.businessName ? (
                 <Text style={styles.businessBannerName}>{settings.businessName}</Text>
@@ -1115,6 +1124,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
+  },
+  businessBannerLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
   },
   businessBannerText: { flex: 1 },
   businessBannerName: {

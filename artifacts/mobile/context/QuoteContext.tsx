@@ -45,6 +45,7 @@ export interface ContractorSettings {
   zipCode: string;
   contractorDiscount: number;
   defaultMarkup: number;
+  logoUri?: string;
 }
 
 export interface QuoteTotals {

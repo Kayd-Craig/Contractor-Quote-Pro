@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   Platform,
   ScrollView,
@@ -117,6 +118,13 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           </View>
 
           <View style={[styles.summaryBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            {settings.logoUri ? (
+              <Image
+                source={{ uri: settings.logoUri }}
+                style={styles.summaryLogo}
+                resizeMode="contain"
+              />
+            ) : null}
             <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
               Quote for
             </Text>
@@ -237,6 +245,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
     gap: 3,
+  },
+  summaryLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    marginBottom: 6,
+    backgroundColor: "transparent",
   },
   summaryLabel: {
     fontSize: 11,
