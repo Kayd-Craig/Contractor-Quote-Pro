@@ -68,24 +68,29 @@ function buildQuoteText(body: {
   const materials = body.lineItems.filter((i) => i.type === "material");
   const labor = body.lineItems.filter((i) => i.type === "labor");
 
+  // Distribute markup proportionally into subtotals so the customer
+  // never sees a raw markup line or percentage.
+  const baseTotal = body.materialSubtotal + body.laborSubtotal;
+  const materialFraction = baseTotal > 0 ? body.materialSubtotal / baseTotal : 0;
+  const laborFraction = baseTotal > 0 ? body.laborSubtotal / baseTotal : 0;
+  const materialCharge = body.materialSubtotal + body.markupAmount * materialFraction;
+  const laborCharge = body.laborSubtotal + body.markupAmount * laborFraction;
+
   if (materials.length > 0) {
     lines.push("───────────────────────────────────");
     lines.push("MATERIALS");
     lines.push("───────────────────────────────────");
     for (const item of materials) {
-      const itemTotal =
-        item.quantity * item.unitPrice * (1 + item.markupPercent / 100);
+      const itemBase = item.quantity * item.unitPrice;
       const storeTag = item.store
         ? item.store === "homedepot"
           ? " [Home Depot]"
           : " [Lowe's]"
         : "";
       lines.push(`  ${item.description}${storeTag}`);
-      lines.push(
-        `  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)} + ${item.markupPercent}% = ${formatCurrency(itemTotal)}`
-      );
+      lines.push(`  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(itemBase)}`);
     }
-    lines.push(`  Subtotal: ${formatCurrency(body.materialSubtotal)}`);
+    lines.push(`  Subtotal: ${formatCurrency(materialCharge)}`);
     lines.push("");
   }
 
@@ -94,14 +99,11 @@ function buildQuoteText(body: {
     lines.push("LABOR");
     lines.push("───────────────────────────────────");
     for (const item of labor) {
-      const itemTotal =
-        item.quantity * item.unitPrice * (1 + item.markupPercent / 100);
+      const itemBase = item.quantity * item.unitPrice;
       lines.push(`  ${item.description}`);
-      lines.push(
-        `  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)}/hr + ${item.markupPercent}% = ${formatCurrency(itemTotal)}`
-      );
+      lines.push(`  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(itemBase)}`);
     }
-    lines.push(`  Subtotal: ${formatCurrency(body.laborSubtotal)}`);
+    lines.push(`  Subtotal: ${formatCurrency(laborCharge)}`);
     lines.push("");
   }
 
@@ -109,18 +111,13 @@ function buildQuoteText(body: {
   lines.push("QUOTE SUMMARY");
   lines.push("═══════════════════════════════════");
   if (materials.length > 0) {
-    lines.push(`  Materials:    ${formatCurrency(body.materialSubtotal)}`);
+    lines.push(`  Materials:    ${formatCurrency(materialCharge)}`);
   }
   if (labor.length > 0) {
-    lines.push(`  Labor:        ${formatCurrency(body.laborSubtotal)}`);
+    lines.push(`  Labor:        ${formatCurrency(laborCharge)}`);
   }
-  lines.push(`  Markup:       ${formatCurrency(body.markupAmount)}`);
   if (body.discountAmount && body.discountAmount > 0) {
-    const discountLabel =
-      body.discountType === "flat"
-        ? `Discount (-${formatCurrency(body.discountAmount)})`
-        : `Discount (-${formatCurrency(body.discountAmount)})`;
-    lines.push(`  ${discountLabel}`);
+    lines.push(`  Discount:     -${formatCurrency(body.discountAmount)}`);
   }
   lines.push("  ─────────────────────────────────");
   lines.push(`  TOTAL:        ${formatCurrency(body.total)}`);
