@@ -480,6 +480,7 @@ export default function QuoteDetailScreen() {
           quoteId={quote.id}
           defaultMarkup={settings.defaultMarkup}
           contractorDiscount={settings.contractorDiscount ?? 0}
+          storeFilter={(settings.preferredStore || "all") as "homedepot" | "lowes" | "all"}
           onClose={() => setAddMode(null)}
           onAdd={(item) => {
             addLineItem(quote.id, item);
@@ -747,6 +748,7 @@ function AddItemModal({
   quoteId,
   defaultMarkup,
   contractorDiscount,
+  storeFilter,
   onClose,
   onAdd,
   colors,
@@ -756,6 +758,7 @@ function AddItemModal({
   quoteId: string;
   defaultMarkup: number;
   contractorDiscount: number;
+  storeFilter: "homedepot" | "lowes" | "all";
   onClose: () => void;
   onAdd: (item: Omit<LineItem, "id">) => void;
   colors: ReturnType<typeof useColors>;
@@ -790,7 +793,6 @@ function AddItemModal({
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  const storeFilter = (settings.preferredStore || "all") as "homedepot" | "lowes" | "all";
   const { data: searchData, isFetching } = useSearchProducts(
     { q: debouncedQuery, store: storeFilter },
     { query: { enabled: isMaterial && debouncedQuery.length >= 2, queryKey: ["products", debouncedQuery, storeFilter] } }
