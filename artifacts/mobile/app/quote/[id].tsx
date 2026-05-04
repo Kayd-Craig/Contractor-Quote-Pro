@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -590,7 +590,7 @@ function AddItemModal({
   const isMaterial = mode === "material";
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchSubmit, setSearchSubmit] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [description, setDescription] = useState("");
@@ -599,9 +599,26 @@ function AddItemModal({
   const [unitPrice, setUnitPrice] = useState("");
   const [markup, setMarkup] = useState(defaultMarkup.toString());
 
+  const LABOR_UNITS = [
+    { label: "per Hour", value: "hr" },
+    { label: "per Sq Ft", value: "sq ft" },
+    { label: "per Lin Ft", value: "lin ft" },
+    { label: "per Day", value: "day" },
+    { label: "Flat Rate", value: "flat" },
+  ];
+
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setDebouncedQuery("");
+      return;
+    }
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
   const { data: searchData, isFetching } = useSearchProducts(
-    { q: searchSubmit },
-    { query: { enabled: isMaterial && searchSubmit.length >= 2 } }
+    { q: debouncedQuery },
+    { query: { enabled: isMaterial && debouncedQuery.length >= 2 } }
   );
 
   function handleSelectProduct(p: Product) {
@@ -622,28 +639,52 @@ function AddItemModal({
       Alert.alert("Required", "Please enter a description.");
       return;
     }
-    const qty = parseFloat(quantity);
-    const price = parseFloat(unitPrice);
-    const mkup = parseFloat(markup);
-    if (isNaN(qty) || qty <= 0) {
-      Alert.alert("Invalid", "Enter a valid quantity.");
-      return;
-    }
-    if (isNaN(price) || price < 0) {
-      Alert.alert("Invalid", "Enter a valid unit price.");
-      return;
-    }
 
-    onAdd({
-      type: mode,
-      description: description.trim(),
-      quantity: qty,
-      unit: unit.trim() || (isMaterial ? "each" : "hr"),
-      unitPrice: price,
-      markupPercent: isNaN(mkup) ? defaultMarkup : mkup,
-      store: selectedProduct?.store ?? null,
-      sku: selectedProduct?.sku ?? null,
-    });
+    if (isMaterial) {
+      const qty = parseFloat(quantity);
+      const price = parseFloat(unitPrice);
+      const mkup = parseFloat(markup);
+      if (isNaN(qty) || qty <= 0) { Alert.alert("Invalid", "Enter a valid quantity."); return; }
+      if (isNaN(price) || price < 0) { Alert.alert("Invalid", "Enter a valid unit price."); return; }
+      onAdd({
+        type: "material",
+        description: description.trim(),
+        quantity: qty,
+        unit: unit.trim() || "each",
+        unitPrice: price,
+        markupPercent: isNaN(mkup) ? defaultMarkup : mkup,
+        store: selectedProduct?.store ?? null,
+        sku: selectedProduct?.sku ?? null,
+      });
+    } else if (unit === "flat") {
+      const totalPrice = parseFloat(quantity);
+      if (isNaN(totalPrice) || totalPrice <= 0) { Alert.alert("Invalid", "Enter a valid total price."); return; }
+      onAdd({
+        type: "labor",
+        description: description.trim(),
+        quantity: 1,
+        unit: "flat",
+        unitPrice: totalPrice,
+        markupPercent: 0,
+        store: null,
+        sku: null,
+      });
+    } else {
+      const qty = parseFloat(quantity);
+      const price = parseFloat(unitPrice);
+      if (isNaN(qty) || qty <= 0) { Alert.alert("Invalid", "Enter a valid quantity."); return; }
+      if (isNaN(price) || price < 0) { Alert.alert("Invalid", "Enter a valid rate."); return; }
+      onAdd({
+        type: "labor",
+        description: description.trim(),
+        quantity: qty,
+        unit: unit,
+        unitPrice: price,
+        markupPercent: 0,
+        store: null,
+        sku: null,
+      });
+    }
     onClose();
   }
 
@@ -687,28 +728,25 @@ function AddItemModal({
                     { backgroundColor: colors.background, borderColor: colors.border },
                   ]}
                 >
-                  <Feather name="search" size={15} color={colors.mutedForeground} />
+                  {isFetching
+                    ? <ActivityIndicator size="small" color={colors.primary} style={{ width: 15 }} />
+                    : <Feather name="search" size={15} color={colors.mutedForeground} />
+                  }
                   <TextInput
                     style={[styles.modalSearchInput, { color: colors.foreground }]}
-                    placeholder="lumber, drywall, paint..."
+                    placeholder="mulch, lumber, pavers, seed..."
                     placeholderTextColor={colors.mutedForeground}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    onSubmitEditing={() => setSearchSubmit(searchQuery.trim())}
                     returnKeyType="search"
                     autoCapitalize="none"
                   />
-                  <TouchableOpacity
-                    onPress={() => setSearchSubmit(searchQuery.trim())}
-                    style={[styles.miniSearchBtn, { backgroundColor: colors.primary }]}
-                  >
-                    <Feather name="search" size={13} color="#fff" />
-                  </TouchableOpacity>
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => { setSearchQuery(""); setDebouncedQuery(""); }}>
+                      <Feather name="x" size={15} color={colors.mutedForeground} />
+                    </TouchableOpacity>
+                  )}
                 </View>
-
-                {isFetching && (
-                  <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} />
-                )}
 
                 {!isFetching && searchData && searchData.products.length > 0 && (
                   <View style={{ maxHeight: 220 }}>
@@ -740,6 +778,39 @@ function AddItemModal({
               </View>
             )}
 
+            {/* Labor unit type picker */}
+            {!isMaterial && (
+              <>
+                <Text style={[styles.modalSectionLabel, { color: colors.mutedForeground }]}>
+                  CHARGE TYPE
+                </Text>
+                <View style={styles.laborUnitRow}>
+                  {LABOR_UNITS.map((lu) => (
+                    <TouchableOpacity
+                      key={lu.value}
+                      style={[
+                        styles.laborUnitBtn,
+                        {
+                          backgroundColor: unit === lu.value ? colors.primary : colors.background,
+                          borderColor: unit === lu.value ? colors.primary : colors.border,
+                        },
+                      ]}
+                      onPress={() => setUnit(lu.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.laborUnitText,
+                          { color: unit === lu.value ? colors.primaryForeground : colors.foreground },
+                        ]}
+                      >
+                        {lu.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
             {/* Form fields */}
             <Text style={[styles.modalSectionLabel, { color: colors.mutedForeground }]}>
               {isMaterial ? "OR ENTER MANUALLY" : "LABOR DETAILS"}
@@ -750,14 +821,14 @@ function AddItemModal({
                 label="Description"
                 value={description}
                 onChange={setDescription}
-                placeholder={isMaterial ? "Material name" : "Labor description"}
+                placeholder={isMaterial ? "Material name" : "e.g. Lawn mowing, Sod installation"}
                 colors={colors}
               />
               <View style={[styles.formDivider, { backgroundColor: colors.border }]} />
               <View style={styles.formRow}>
                 <View style={styles.formRowHalf}>
                   <ModalField
-                    label="Quantity"
+                    label={unit === "flat" ? "Total Price ($)" : `Qty${!isMaterial ? ` (${unit})` : ""}`}
                     value={quantity}
                     onChange={setQuantity}
                     placeholder="1"
@@ -765,58 +836,97 @@ function AddItemModal({
                     colors={colors}
                   />
                 </View>
-                <View style={[styles.formRowDivider, { backgroundColor: colors.border }]} />
-                <View style={styles.formRowHalf}>
-                  <ModalField
-                    label="Unit"
-                    value={unit}
-                    onChange={setUnit}
-                    placeholder={isMaterial ? "each" : "hr"}
-                    colors={colors}
-                  />
-                </View>
+                {isMaterial && (
+                  <>
+                    <View style={[styles.formRowDivider, { backgroundColor: colors.border }]} />
+                    <View style={styles.formRowHalf}>
+                      <ModalField
+                        label="Unit"
+                        value={unit}
+                        onChange={setUnit}
+                        placeholder="each"
+                        colors={colors}
+                      />
+                    </View>
+                  </>
+                )}
+                {!isMaterial && unit !== "flat" && (
+                  <>
+                    <View style={[styles.formRowDivider, { backgroundColor: colors.border }]} />
+                    <View style={styles.formRowHalf}>
+                      <ModalField
+                        label={`Rate ${unit === "hr" ? "per hr" : unit === "day" ? "per day" : `per ${unit}`} ($)`}
+                        value={unitPrice}
+                        onChange={setUnitPrice}
+                        placeholder="0.00"
+                        keyboardType="decimal-pad"
+                        colors={colors}
+                      />
+                    </View>
+                  </>
+                )}
               </View>
-              <View style={[styles.formDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.formRow}>
-                <View style={styles.formRowHalf}>
-                  <ModalField
-                    label={isMaterial ? "Unit Price ($)" : "Rate per hr ($)"}
-                    value={unitPrice}
-                    onChange={setUnitPrice}
-                    placeholder="0.00"
-                    keyboardType="decimal-pad"
-                    colors={colors}
-                  />
-                </View>
-                <View style={[styles.formRowDivider, { backgroundColor: colors.border }]} />
-                <View style={styles.formRowHalf}>
-                  <ModalField
-                    label="Markup %"
-                    value={markup}
-                    onChange={setMarkup}
-                    placeholder={defaultMarkup.toString()}
-                    keyboardType="decimal-pad"
-                    colors={colors}
-                  />
-                </View>
-              </View>
+              {isMaterial && (
+                <>
+                  <View style={[styles.formDivider, { backgroundColor: colors.border }]} />
+                  <View style={styles.formRow}>
+                    <View style={styles.formRowHalf}>
+                      <ModalField
+                        label="Unit Price ($)"
+                        value={unitPrice}
+                        onChange={setUnitPrice}
+                        placeholder="0.00"
+                        keyboardType="decimal-pad"
+                        colors={colors}
+                      />
+                    </View>
+                    <View style={[styles.formRowDivider, { backgroundColor: colors.border }]} />
+                    <View style={styles.formRowHalf}>
+                      <ModalField
+                        label="Markup %"
+                        value={markup}
+                        onChange={setMarkup}
+                        placeholder={defaultMarkup.toString()}
+                        keyboardType="decimal-pad"
+                        colors={colors}
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* Preview total */}
-            {unitPrice && quantity ? (
-              <View style={[styles.previewTotal, { backgroundColor: colors.secondary }]}>
-                <Text style={[styles.previewLabel, { color: colors.mutedForeground }]}>
-                  Line Total
-                </Text>
-                <Text style={[styles.previewValue, { color: colors.primary }]}>
-                  ${(
-                    parseFloat(quantity || "0") *
-                    parseFloat(unitPrice || "0") *
-                    (1 + (parseFloat(markup || "0") / 100))
-                  ).toFixed(2)}
-                </Text>
-              </View>
-            ) : null}
+            {(() => {
+              if (isMaterial && unitPrice && quantity) {
+                const total = parseFloat(quantity || "0") * parseFloat(unitPrice || "0") * (1 + (parseFloat(markup || "0") / 100));
+                return (
+                  <View style={[styles.previewTotal, { backgroundColor: colors.secondary }]}>
+                    <Text style={[styles.previewLabel, { color: colors.mutedForeground }]}>Line Total (with markup)</Text>
+                    <Text style={[styles.previewValue, { color: colors.primary }]}>${total.toFixed(2)}</Text>
+                  </View>
+                );
+              }
+              if (!isMaterial && unit === "flat" && quantity) {
+                const total = parseFloat(quantity || "0");
+                if (!isNaN(total) && total > 0) return (
+                  <View style={[styles.previewTotal, { backgroundColor: colors.secondary }]}>
+                    <Text style={[styles.previewLabel, { color: colors.mutedForeground }]}>Flat Rate Total</Text>
+                    <Text style={[styles.previewValue, { color: colors.primary }]}>${total.toFixed(2)}</Text>
+                  </View>
+                );
+              }
+              if (!isMaterial && unit !== "flat" && unitPrice && quantity) {
+                const total = parseFloat(quantity || "0") * parseFloat(unitPrice || "0");
+                if (!isNaN(total) && total > 0) return (
+                  <View style={[styles.previewTotal, { backgroundColor: colors.secondary }]}>
+                    <Text style={[styles.previewLabel, { color: colors.mutedForeground }]}>Labor Total</Text>
+                    <Text style={[styles.previewValue, { color: colors.primary }]}>${total.toFixed(2)}</Text>
+                  </View>
+                );
+              }
+              return null;
+            })()}
 
             <TouchableOpacity
               style={[styles.addItemBtn, { backgroundColor: colors.primary }]}
@@ -1204,12 +1314,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_400Regular",
   },
-  miniSearchBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
+  laborUnitRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 4,
+  },
+  laborUnitBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  laborUnitText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
   },
   selectedTag: {
     flexDirection: "row",

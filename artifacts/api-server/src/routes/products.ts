@@ -54,13 +54,50 @@ const MOCK_PRODUCTS: MockProduct[] = [
   { id: "hd-080", name: '16d 3.5" Framing Nails 1lb', brand: 'Grip-Rite', price: 9.97, contractorPrice: 8.50, unit: 'lb', store: 'homedepot', sku: '630690', category: 'Hardware', inStock: true },
   { id: "hd-081", name: '#8 Coarse Drywall Screws 1lb', brand: 'Grip-Rite', price: 7.48, contractorPrice: 6.39, unit: 'lb', store: 'homedepot', sku: '631640', category: 'Hardware', inStock: true },
   { id: "lw-080", name: 'Simpson Strong-Tie 2x4 Post Hanger', brand: 'Simpson', price: 2.87, contractorPrice: 2.49, unit: 'each', store: 'lowes', sku: 'SS24PH', category: 'Hardware', inStock: true },
-  // Landscaping
+  // Landscaping — Mulch & Ground Cover
   { id: "hd-090", name: 'Top Choice Pine Bark Mulch 2 cu ft', brand: 'Top Choice', price: 4.87, contractorPrice: 4.25, unit: 'bag', store: 'homedepot', sku: '100039', category: 'Landscaping', inStock: true },
   { id: "hd-091", name: 'Vigoro Black Rubber Mulch 0.8 cu ft', brand: 'Vigoro', price: 7.98, contractorPrice: 6.99, unit: 'bag', store: 'homedepot', sku: '301028', category: 'Landscaping', inStock: true },
   { id: "hd-092", name: 'River Rock 0.5 cu ft', brand: 'Vigoro', price: 5.98, contractorPrice: 5.20, unit: 'bag', store: 'homedepot', sku: '205025', category: 'Landscaping', inStock: true },
+  { id: "hd-093", name: 'Vigoro Brown Mulch 2 cu ft', brand: 'Vigoro', price: 3.97, contractorPrice: 3.45, unit: 'bag', store: 'homedepot', sku: '100037', category: 'Landscaping', inStock: true },
+  { id: "hd-094", name: 'Cedar Mulch 2 cu ft', brand: 'Top Choice', price: 5.47, contractorPrice: 4.75, unit: 'bag', store: 'homedepot', sku: '100040', category: 'Landscaping', inStock: true },
   { id: "lw-090", name: 'Premium Hardwood Mulch 2 cu ft', brand: 'EZStraw', price: 4.48, contractorPrice: 3.89, unit: 'bag', store: 'lowes', sku: 'EZ2CU', category: 'Landscaping', inStock: true },
   { id: "lw-091", name: 'Pea Gravel 0.5 cu ft', brand: 'Vigoro', price: 4.28, contractorPrice: 3.75, unit: 'bag', store: 'lowes', sku: 'VG05PG', category: 'Landscaping', inStock: true },
   { id: "lw-092", name: 'Landscape Fabric 3ft x 50ft', brand: 'Dewitt', price: 13.98, contractorPrice: 12.20, unit: 'roll', store: 'lowes', sku: 'DW3X50', category: 'Landscaping', inStock: true },
+  { id: "lw-093", name: 'Red Cedar Mulch 2 cu ft', brand: 'Scotts', price: 4.68, contractorPrice: 4.10, unit: 'bag', store: 'lowes', sku: 'SC2RCM', category: 'Landscaping', inStock: true },
+  // Landscaping — Soil & Amendments
+  { id: "hd-095", name: 'Scotts Premium Topsoil 1 cu ft', brand: 'Scotts', price: 4.47, contractorPrice: 3.89, unit: 'bag', store: 'homedepot', sku: '100459', category: 'Topsoil', inStock: true },
+  { id: "hd-096", name: 'Miracle-Gro Garden Soil 1.5 cu ft', brand: 'Miracle-Gro', price: 9.87, contractorPrice: 8.60, unit: 'bag', store: 'homedepot', sku: '70058300', category: 'Topsoil', inStock: true },
+  { id: "lw-095", name: 'Premium Topsoil 0.75 cu ft', brand: 'Vigoro', price: 3.98, contractorPrice: 3.48, unit: 'bag', store: 'lowes', sku: 'VG75TS', category: 'Topsoil', inStock: true },
+  { id: "lw-096", name: 'Espoma Organic Garden Soil 1 cu ft', brand: 'Espoma', price: 7.98, contractorPrice: 6.99, unit: 'bag', store: 'lowes', sku: 'ESP1GS', category: 'Topsoil', inStock: true },
+  // Landscaping — Sod & Seed
+  { id: "hd-097", name: 'Scotts Turf Builder Bermuda Grass Seed 5lb', brand: 'Scotts', price: 24.97, contractorPrice: 21.50, unit: 'bag', store: 'homedepot', sku: '17195', category: 'Seed', inStock: true },
+  { id: "hd-098", name: 'Scotts EZ Seed Patch & Repair 10lb', brand: 'Scotts', price: 39.97, contractorPrice: 34.50, unit: 'bag', store: 'homedepot', sku: '17548', category: 'Seed', inStock: true },
+  { id: "hd-099", name: 'Tall Fescue Grass Seed 7lb', brand: 'Pennington', price: 29.97, contractorPrice: 25.99, unit: 'bag', store: 'homedepot', sku: '100521', category: 'Seed', inStock: true },
+  { id: "lw-097", name: 'Scotts Sun & Shade Grass Seed 3lb', brand: 'Scotts', price: 19.98, contractorPrice: 17.25, unit: 'bag', store: 'lowes', sku: 'SC3SS', category: 'Seed', inStock: true },
+  { id: "lw-098", name: 'Kentucky Bluegrass Seed 3lb', brand: 'Pennington', price: 21.48, contractorPrice: 18.75, unit: 'bag', store: 'lowes', sku: 'PEN3KB', category: 'Seed', inStock: true },
+  // Landscaping — Pavers & Edging
+  { id: "hd-111", name: 'Pavestone 12x12 Square Concrete Paver', brand: 'Pavestone', price: 1.78, contractorPrice: 1.55, unit: 'each', store: 'homedepot', sku: '98006', category: 'Pavers', inStock: true },
+  { id: "hd-112", name: 'Oldcastle 16x16 Concrete Step Stone', brand: 'Oldcastle', price: 4.47, contractorPrice: 3.89, unit: 'each', store: 'homedepot', sku: '80200', category: 'Pavers', inStock: true },
+  { id: "hd-113", name: 'Pavestone Rumblestone 7.75x3.75 Wall Block', brand: 'Pavestone', price: 2.98, contractorPrice: 2.59, unit: 'each', store: 'homedepot', sku: '81304', category: 'Pavers', inStock: true },
+  { id: "lw-111", name: 'Belgard 12x12 Patio Stone', brand: 'Belgard', price: 2.18, contractorPrice: 1.89, unit: 'each', store: 'lowes', sku: 'BG1212', category: 'Pavers', inStock: true },
+  { id: "lw-112", name: 'Versa-Lok Standard Retaining Wall Block', brand: 'Versa-Lok', price: 3.28, contractorPrice: 2.85, unit: 'each', store: 'lowes', sku: 'VL-STD', category: 'Pavers', inStock: true },
+  { id: "hd-114", name: 'Dimex EasyFlex Landscape Edging 20ft', brand: 'Dimex', price: 19.97, contractorPrice: 17.25, unit: 'roll', store: 'homedepot', sku: '3600-20C', category: 'Edging', inStock: true },
+  { id: "lw-113", name: 'Suncast Borden Landscape Edging 20ft', brand: 'Suncast', price: 17.98, contractorPrice: 15.50, unit: 'roll', store: 'lowes', sku: 'SC20LE', category: 'Edging', inStock: true },
+  // Landscaping — Fertilizer & Weed Control
+  { id: "hd-115", name: 'Scotts Turf Builder Lawn Food 12.5lb', brand: 'Scotts', price: 29.97, contractorPrice: 25.99, unit: 'bag', store: 'homedepot', sku: '23008', category: 'Fertilizer', inStock: true },
+  { id: "lw-115", name: 'Miracle-Gro Water Soluble All Purpose Plant Food 5lb', brand: 'Miracle-Gro', price: 23.98, contractorPrice: 20.75, unit: 'bag', store: 'lowes', sku: 'MG5APF', category: 'Fertilizer', inStock: true },
+  { id: "hd-116", name: 'Roundup Ready-To-Use Weed Killer 1 gal', brand: 'Roundup', price: 19.97, contractorPrice: 17.25, unit: 'jug', store: 'homedepot', sku: '5003510', category: 'Weed Control', inStock: true },
+  { id: "lw-116", name: 'Ortho GroundClear Weed & Grass Killer 1 gal', brand: 'Ortho', price: 21.98, contractorPrice: 19.00, unit: 'jug', store: 'lowes', sku: 'OR1GC', category: 'Weed Control', inStock: true },
+  // Landscaping — Irrigation
+  { id: "hd-120", name: 'Rain Bird 1/2" Pop-Up Sprinkler Head', brand: 'Rain Bird', price: 3.98, contractorPrice: 3.45, unit: 'each', store: 'homedepot', sku: '1804VAN', category: 'Irrigation', inStock: true },
+  { id: "hd-121", name: 'Rain Bird 1/2" Drip Irrigation Kit 50ft', brand: 'Rain Bird', price: 29.97, contractorPrice: 25.99, unit: 'kit', store: 'homedepot', sku: 'DRIPPAILQ', category: 'Irrigation', inStock: true },
+  { id: "lw-120", name: 'Orbit 1/2" 90-Degree Drip Emitter', brand: 'Orbit', price: 1.48, contractorPrice: 1.28, unit: 'each', store: 'lowes', sku: 'OR90DE', category: 'Irrigation', inStock: true },
+  { id: "lw-121", name: 'Hunter 1/2" Pop-Up Spray Sprinkler', brand: 'Hunter', price: 4.78, contractorPrice: 4.15, unit: 'each', store: 'lowes', sku: 'HU12PS', category: 'Irrigation', inStock: true },
+  // Fencing
+  { id: "hd-130", name: '4x4x8 Pressure Treated Post', brand: 'WeatherShield', price: 12.97, contractorPrice: 11.25, unit: 'each', store: 'homedepot', sku: '246285', category: 'Fencing', inStock: true },
+  { id: "hd-131", name: '6ft Cedar Privacy Fence Board', brand: 'Cedar', price: 7.87, contractorPrice: 6.85, unit: 'each', store: 'homedepot', sku: '161662', category: 'Fencing', inStock: true },
+  { id: "lw-130", name: '8ft Pressure Treated 4x4 Post', brand: 'WeatherShield', price: 14.28, contractorPrice: 12.40, unit: 'each', store: 'lowes', sku: 'WS448PT', category: 'Fencing', inStock: true },
+  { id: "lw-131", name: 'Wooden Fence Picket 1x3x6', brand: 'Lumber', price: 2.78, contractorPrice: 2.40, unit: 'each', store: 'lowes', sku: 'WP1X36', category: 'Fencing', inStock: true },
   // Roofing
   { id: "hd-100", name: 'Owens Corning Architectural Shingles', brand: 'Owens Corning', price: 109.00, contractorPrice: 95.00, unit: 'bundle', store: 'homedepot', sku: '516808', category: 'Roofing', inStock: true },
   { id: "lw-100", name: 'GAF Timberline HDZ Shingles', brand: 'GAF', price: 114.98, contractorPrice: 99.50, unit: 'bundle', store: 'lowes', sku: 'GAF-THDZ', category: 'Roofing', inStock: true },
