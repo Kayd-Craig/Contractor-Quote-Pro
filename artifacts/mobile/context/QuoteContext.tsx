@@ -34,10 +34,12 @@ export interface Quote {
 }
 
 export interface ContractorSettings {
+  businessName: string;
   name: string;
   phone: string;
   email: string;
   license: string;
+  zipCode: string;
   defaultMarkup: number;
 }
 
@@ -71,10 +73,12 @@ interface QuoteContextType {
 }
 
 const defaultSettings: ContractorSettings = {
+  businessName: "",
   name: "",
   phone: "",
   email: "",
   license: "",
+  zipCode: "",
   defaultMarkup: 20,
 };
 

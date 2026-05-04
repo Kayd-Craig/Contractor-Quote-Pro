@@ -25,6 +25,7 @@ function buildQuoteText(body: {
   customerPhone?: string | null;
   jobAddress?: string | null;
   jobDescription: string;
+  businessName?: string | null;
   contractorName: string;
   contractorPhone?: string | null;
   contractorEmail?: string | null;
@@ -47,6 +48,7 @@ function buildQuoteText(body: {
   lines.push(`Date: ${date}`);
   lines.push("");
   lines.push("FROM:");
+  if (body.businessName) lines.push(`  ${body.businessName}`);
   lines.push(`  ${body.contractorName}`);
   if (body.contractorPhone) lines.push(`  ${body.contractorPhone}`);
   if (body.contractorEmail) lines.push(`  ${body.contractorEmail}`);

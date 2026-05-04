@@ -144,6 +144,21 @@ export default function QuoteDetailScreen() {
           { paddingBottom: Platform.OS === "web" ? 40 + 34 : 40 + insets.bottom },
         ]}
       >
+        {/* Business / Contractor banner */}
+        {(settings.businessName || settings.name) && (
+          <View style={[styles.businessBanner, { backgroundColor: colors.accent }]}>
+            <Feather name="briefcase" size={14} color="rgba(255,255,255,0.7)" />
+            <View style={styles.businessBannerText}>
+              {settings.businessName ? (
+                <Text style={styles.businessBannerName}>{settings.businessName}</Text>
+              ) : null}
+              {settings.name ? (
+                <Text style={styles.businessBannerSub}>{settings.name}</Text>
+              ) : null}
+            </View>
+          </View>
+        )}
+
         {/* Customer info */}
         <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {quote.jobAddress ? (
@@ -813,6 +828,26 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: "Inter_700Bold",
     color: "#FFFFFF",
+  },
+  businessBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  businessBannerText: { flex: 1 },
+  businessBannerName: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+  },
+  businessBannerSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.75)",
+    marginTop: 1,
   },
   bigSendBtn: {
     flexDirection: "row",

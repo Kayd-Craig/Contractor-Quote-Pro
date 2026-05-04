@@ -47,6 +47,7 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           customerPhone: quote.customerPhone,
           jobAddress: quote.jobAddress,
           jobDescription: quote.jobDescription,
+          businessName: settings.businessName || undefined,
           contractorName: settings.name || "Your Contractor",
           contractorPhone: settings.phone,
           contractorEmail: settings.email,

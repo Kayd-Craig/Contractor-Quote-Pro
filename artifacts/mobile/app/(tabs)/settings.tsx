@@ -29,10 +29,7 @@ export default function SettingsScreen() {
     setForm(settings);
   }, [settings]);
 
-  const topPad =
-    Platform.OS === "web"
-      ? Math.max(insets.top, 67)
-      : insets.top;
+  const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
   function handleSave() {
     if (!form.name.trim()) {
@@ -49,47 +46,16 @@ export default function SettingsScreen() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  const Field = ({
-    label,
-    value,
-    onChange,
-    placeholder,
-    keyboardType = "default",
-    icon,
-  }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    placeholder?: string;
-    keyboardType?: "default" | "phone-pad" | "email-address" | "numeric" | "decimal-pad";
-    icon: React.ComponentProps<typeof Feather>["name"];
-  }) => (
-    <View style={styles.fieldGroup}>
-      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
-      <View
-        style={[styles.fieldRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-      >
-        <Feather name={icon} size={16} color={colors.mutedForeground} />
-        <TextInput
-          style={[styles.fieldInput, { color: colors.foreground }]}
-          value={value}
-          onChangeText={onChange}
-          placeholder={placeholder}
-          placeholderTextColor={colors.mutedForeground}
-          keyboardType={keyboardType}
-          autoCapitalize={keyboardType === "email-address" ? "none" : "words"}
-          autoCorrect={false}
-        />
-      </View>
-    </View>
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View
         style={[
           styles.header,
-          { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border },
+          {
+            paddingTop: topPad + 12,
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+          },
         ]}
       >
         <Text style={[styles.title, { color: colors.foreground }]}>Settings</Text>
@@ -102,53 +68,99 @@ export default function SettingsScreen() {
         contentContainerStyle={[
           styles.scroll,
           {
-            paddingBottom:
-              Platform.OS === "web" ? 84 + 34 : 84 + insets.bottom,
+            paddingBottom: Platform.OS === "web" ? 84 + 34 : 84 + insets.bottom,
           },
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Contractor Info */}
+        {/* Business Name — prominent, shown on quotes */}
+        <View style={[styles.businessCard, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+          <View style={styles.businessCardHeader}>
+            <Feather name="briefcase" size={16} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.businessCardLabel}>BUSINESS NAME</Text>
+            <View style={styles.quoteTagRow}>
+              <Feather name="file-text" size={11} color="rgba(255,255,255,0.7)" />
+              <Text style={styles.quoteTagText}>Appears on every quote</Text>
+            </View>
+          </View>
+          <TextInput
+            style={styles.businessNameInput}
+            value={form.businessName}
+            onChangeText={(v) => setForm((f) => ({ ...f, businessName: v }))}
+            placeholder="Your Business Name (e.g. Smith Construction LLC)"
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            autoCapitalize="words"
+            autoCorrect={false}
+          />
+        </View>
+
+        {/* Contact Info */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
-          CONTRACTOR INFORMATION
+          CONTACT INFORMATION
         </Text>
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Field
-            label="Business / Name"
+          <InputRow
             icon="user"
+            label="Your Name"
             value={form.name}
             onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-            placeholder="Your name or business name"
+            placeholder="First and last name"
+            colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Field
-            label="Phone Number"
+          <Divider colors={colors} />
+          <InputRow
             icon="phone"
+            label="Phone Number"
             value={form.phone}
             onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
             placeholder="(555) 123-4567"
             keyboardType="phone-pad"
+            colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Field
-            label="Email Address"
+          <Divider colors={colors} />
+          <InputRow
             icon="mail"
+            label="Email Address"
             value={form.email}
             onChange={(v) => setForm((f) => ({ ...f, email: v }))}
             placeholder="you@email.com"
             keyboardType="email-address"
+            colors={colors}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <Field
-            label="License Number"
+          <Divider colors={colors} />
+          <InputRow
             icon="shield"
+            label="License Number"
             value={form.license}
             onChange={(v) => setForm((f) => ({ ...f, license: v }))}
             placeholder="Contractor license # (optional)"
+            colors={colors}
           />
         </View>
 
-        {/* Markup */}
+        {/* Location */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          YOUR LOCATION
+        </Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <InputRow
+            icon="map-pin"
+            label="Zip Code"
+            value={form.zipCode}
+            onChange={(v) => setForm((f) => ({ ...f, zipCode: v.replace(/\D/g, "").slice(0, 5) }))}
+            placeholder="Enter zip code to find nearby stores"
+            keyboardType="number-pad"
+            colors={colors}
+          />
+        </View>
+        <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="map-pin" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
+            Your zip code is used in the Materials tab to show hardware stores near you.
+          </Text>
+        </View>
+
+        {/* Default Markup */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
           DEFAULT MARKUP
         </Text>
@@ -161,11 +173,16 @@ export default function SettingsScreen() {
                   Default Markup %
                 </Text>
                 <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>
-                  Applied to all jobs unless overridden
+                  Applied automatically to all jobs
                 </Text>
               </View>
             </View>
-            <View style={[styles.markupInput, { borderColor: colors.primary, backgroundColor: colors.primary + "12" }]}>
+            <View
+              style={[
+                styles.markupInput,
+                { borderColor: colors.primary, backgroundColor: colors.primary + "12" },
+              ]}
+            >
               <TextInput
                 style={[styles.markupValue, { color: colors.primary }]}
                 value={form.defaultMarkup.toString()}
@@ -180,8 +197,6 @@ export default function SettingsScreen() {
               <Text style={[styles.markupPct, { color: colors.primary }]}>%</Text>
             </View>
           </View>
-
-          {/* Preset buttons */}
           <View style={[styles.presetRow, { borderTopColor: colors.border }]}>
             {[10, 15, 20, 25, 30].map((pct) => (
               <TouchableOpacity
@@ -198,7 +213,12 @@ export default function SettingsScreen() {
                 <Text
                   style={[
                     styles.presetText,
-                    { color: form.defaultMarkup === pct ? colors.primaryForeground : colors.foreground },
+                    {
+                      color:
+                        form.defaultMarkup === pct
+                          ? colors.primaryForeground
+                          : colors.foreground,
+                    },
                   ]}
                 >
                   {pct}%
@@ -208,7 +228,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Save button */}
+        {/* Save */}
         <TouchableOpacity
           style={[
             styles.saveBtn,
@@ -227,13 +247,71 @@ export default function SettingsScreen() {
           </Text>
         </TouchableOpacity>
 
-        <View style={[styles.infoBox, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.infoBox,
+            { backgroundColor: colors.secondary, borderColor: colors.border },
+          ]}
+        >
           <Feather name="info" size={14} color={colors.mutedForeground} />
           <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-            Product prices from Home Depot and Lowe's are updated in real time. Contractor pricing shown where available via Pro programs.
+            Product prices from Home Depot and Lowe's are updated in real time.
+            Contractor pricing shown where available via Pro programs.
           </Text>
         </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function Divider({ colors }: { colors: ReturnType<typeof useColors> }) {
+  return (
+    <View style={[styles.divider, { backgroundColor: colors.border }]} />
+  );
+}
+
+function InputRow({
+  icon,
+  label,
+  value,
+  onChange,
+  placeholder,
+  keyboardType = "default",
+  colors,
+}: {
+  icon: React.ComponentProps<typeof Feather>["name"];
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  keyboardType?: "default" | "phone-pad" | "email-address" | "number-pad" | "decimal-pad";
+  colors: ReturnType<typeof useColors>;
+}) {
+  return (
+    <View style={styles.fieldGroup}>
+      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
+      <View
+        style={[
+          styles.fieldRow,
+          { backgroundColor: colors.background, borderColor: colors.border },
+        ]}
+      >
+        <Feather name={icon} size={16} color={colors.mutedForeground} />
+        <TextInput
+          style={[styles.fieldInput, { color: colors.foreground }]}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={colors.mutedForeground}
+          keyboardType={keyboardType}
+          autoCapitalize={
+            keyboardType === "email-address" || keyboardType === "number-pad"
+              ? "none"
+              : "words"
+          }
+          autoCorrect={false}
+        />
+      </View>
     </View>
   );
 }
@@ -245,31 +323,69 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: {
-    fontSize: 26,
-    fontFamily: "Inter_700Bold",
-  },
-  subtitle: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
-  scroll: {
+  title: { fontSize: 26, fontFamily: "Inter_700Bold" },
+  subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 1 },
+  scroll: { padding: 16 },
+
+  businessCard: {
+    borderRadius: 16,
     padding: 16,
-    gap: 0,
+    gap: 10,
+    marginBottom: 6,
+    marginTop: 6,
   },
+  businessCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  businessCardLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: "rgba(255,255,255,0.85)",
+    letterSpacing: 0.8,
+    flex: 1,
+  },
+  quoteTagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(0,0,0,0.15)",
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  quoteTagText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(255,255,255,0.8)",
+  },
+  businessNameInput: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+    borderBottomWidth: 1.5,
+    borderBottomColor: "rgba(255,255,255,0.4)",
+    paddingVertical: 6,
+    minHeight: 36,
+  },
+
   sectionTitle: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
     letterSpacing: 0.8,
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 18,
     marginLeft: 4,
   },
   section: {
     borderRadius: 14,
     borderWidth: 1,
     overflow: "hidden",
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 16,
   },
   fieldGroup: {
     paddingHorizontal: 16,
@@ -294,10 +410,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_400Regular",
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: 16,
+
+  zipHint: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 8,
   },
+  zipHintText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 17,
+  },
+
   markupRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -311,15 +440,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-  markupLabel: {
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
-  },
-  markupDesc: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    marginTop: 1,
-  },
+  markupLabel: { fontSize: 15, fontFamily: "Inter_500Medium" },
+  markupDesc: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
   markupInput: {
     flexDirection: "row",
     alignItems: "center",
@@ -336,10 +458,7 @@ const styles = StyleSheet.create({
     minWidth: 36,
     textAlign: "center",
   },
-  markupPct: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-  },
+  markupPct: { fontSize: 16, fontFamily: "Inter_700Bold" },
   presetRow: {
     flexDirection: "row",
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -353,10 +472,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  presetText: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-  },
+  presetText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
   saveBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -366,10 +483,8 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     marginTop: 20,
   },
-  saveBtnText: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-  },
+  saveBtnText: { fontSize: 16, fontFamily: "Inter_700Bold" },
+
   infoBox: {
     flexDirection: "row",
     alignItems: "flex-start",
