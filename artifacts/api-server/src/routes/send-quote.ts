@@ -81,14 +81,8 @@ function buildQuoteText(body: {
     lines.push("MATERIALS");
     lines.push("───────────────────────────────────");
     for (const item of materials) {
-      const itemBase = item.quantity * item.unitPrice;
-      const storeTag = item.store
-        ? item.store === "homedepot"
-          ? " [Home Depot]"
-          : " [Lowe's]"
-        : "";
-      lines.push(`  ${item.description}${storeTag}`);
-      lines.push(`  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(itemBase)}`);
+      lines.push(`  ${item.description}`);
+      lines.push(`  Qty: ${item.quantity} ${item.unit}`);
     }
     lines.push(`  Subtotal: ${formatCurrency(materialCharge)}`);
     lines.push("");
@@ -99,9 +93,8 @@ function buildQuoteText(body: {
     lines.push("LABOR");
     lines.push("───────────────────────────────────");
     for (const item of labor) {
-      const itemBase = item.quantity * item.unitPrice;
       lines.push(`  ${item.description}`);
-      lines.push(`  ${item.quantity} ${item.unit} x ${formatCurrency(item.unitPrice)} = ${formatCurrency(itemBase)}`);
+      lines.push(`  Qty: ${item.quantity} ${item.unit}`);
     }
     lines.push(`  Subtotal: ${formatCurrency(laborCharge)}`);
     lines.push("");
