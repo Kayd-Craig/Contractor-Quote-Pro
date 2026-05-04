@@ -5,6 +5,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { Quote } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
+import { extractZipFromAddress } from "@/utils/extractZip";
+import { getTaxRateForZip } from "@/utils/taxRates";
 
 interface Props {
   quote: Quote;
@@ -21,8 +23,16 @@ const STATUS_LABELS: Record<Quote["status"], string> = {
 
 export function QuoteCard({ quote, onPress, onLongPress }: Props) {
   const colors = useColors();
-  const { calculateTotals } = useQuotes();
-  const totals = calculateTotals(quote.lineItems);
+  const { calculateTotals, settings } = useQuotes();
+  const zip = extractZipFromAddress(quote.jobAddress, settings.zipCode);
+  const taxInfo = zip ? getTaxRateForZip(zip) : null;
+  const totals = calculateTotals(
+    quote.lineItems,
+    quote.markupOverride ?? settings.defaultMarkup,
+    quote.discountAmount,
+    quote.discountType,
+    taxInfo?.rate ?? 0
+  );
 
   const statusColor = {
     draft: colors.mutedForeground,

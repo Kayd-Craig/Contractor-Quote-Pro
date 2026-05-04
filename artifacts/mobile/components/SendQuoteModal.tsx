@@ -18,6 +18,8 @@ import { useSendQuote } from "@workspace/api-client-react";
 import type { Quote } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
+import { extractZipFromAddress } from "@/utils/extractZip";
+import { getTaxRateForZip } from "@/utils/taxRates";
 import { PaperQuoteView } from "@/components/PaperQuoteView";
 
 interface Props {
@@ -36,11 +38,16 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
   const [method, setMethod] = useState<SendMethod>("email");
   const { mutateAsync: sendQuoteApi, isPending } = useSendQuote();
 
+  const zip = extractZipFromAddress(quote.jobAddress, settings.zipCode);
+  const taxInfo = zip ? getTaxRateForZip(zip) : null;
+  const taxRate = taxInfo?.rate ?? 0;
+
   const totals = calculateTotals(
     quote.lineItems,
     quote.markupOverride ?? settings.defaultMarkup,
     quote.discountAmount,
-    quote.discountType
+    quote.discountType,
+    taxRate
   );
 
   async function handleSend() {

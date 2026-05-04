@@ -32,9 +32,11 @@ React Native (Expo) app for contractors to create on-site job quotes.
 
 ### Key Features
 - Product search with mock HD/Lowe's data (debounced auto-search)
+- Manual material entry with custom supplier name (for suppliers without online catalogs)
 - Materials/labor split with labor unit-type picker (per Hour, Sq Ft, Lin Ft, Day, Flat Rate)
 - Markup % and contractor store account discount
 - Per-quote discount (percent or flat)
+- **Automatic tax calculation** by zip code (state-level rates, extracted from job address or settings zip)
 - Job-site photos via expo-image-picker
 - Customer history/auto-fill from past quotes
 - Paper-style quote preview with **4 font options** (Classic/Modern/Elegant/Clean) and **4 template styles** (Typewriter/Professional/Bold/Minimal) — stored per-quote

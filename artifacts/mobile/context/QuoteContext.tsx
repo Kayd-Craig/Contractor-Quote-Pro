@@ -64,6 +64,9 @@ export interface QuoteTotals {
   markupPercent: number;
   markupAmount: number;
   discountAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  subtotalBeforeTax: number;
   total: number;
 }
 
@@ -86,7 +89,7 @@ interface QuoteContextType {
   addPhoto: (quoteId: string, uri: string) => void;
   removePhoto: (quoteId: string, uri: string) => void;
   updateSettings: (data: Partial<ContractorSettings>) => void;
-  calculateTotals: (items: LineItem[], markupPct?: number, discountAmt?: number, discountType?: "percent" | "flat") => QuoteTotals;
+  calculateTotals: (items: LineItem[], markupPct?: number, discountAmt?: number, discountType?: "percent" | "flat", taxRate?: number) => QuoteTotals;
   getCustomers: () => Customer[];
 }
 
@@ -307,7 +310,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       items: LineItem[],
       markupPct?: number,
       discountAmt?: number,
-      discountType?: "percent" | "flat"
+      discountType?: "percent" | "flat",
+      taxRate?: number
     ): QuoteTotals => {
       const markup = markupPct ?? settings.defaultMarkup;
       let materialBase = 0;
@@ -331,7 +335,10 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
             : afterMarkup * (discountAmt / 100);
       }
 
-      const total = afterMarkup - discountAmount;
+      const subtotalBeforeTax = afterMarkup - discountAmount;
+      const effectiveTaxRate = taxRate ?? 0;
+      const taxAmount = subtotalBeforeTax * (effectiveTaxRate / 100);
+      const total = subtotalBeforeTax + taxAmount;
 
       return {
         materialSubtotal: materialBase,
@@ -339,6 +346,9 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         markupPercent: markup,
         markupAmount,
         discountAmount,
+        taxRate: effectiveTaxRate,
+        taxAmount,
+        subtotalBeforeTax,
         total,
       };
     },

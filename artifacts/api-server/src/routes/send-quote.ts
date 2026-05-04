@@ -35,6 +35,8 @@ function buildQuoteText(body: {
   markupAmount: number;
   discountAmount?: number | null;
   discountType?: "percent" | "flat" | null;
+  taxRate?: number | null;
+  taxAmount?: number | null;
   total: number;
 }): string {
   const date = new Date().toLocaleDateString("en-US", {
@@ -111,6 +113,10 @@ function buildQuoteText(body: {
   }
   if (body.discountAmount && body.discountAmount > 0) {
     lines.push(`  Discount:     -${formatCurrency(body.discountAmount)}`);
+  }
+  if (body.taxAmount && body.taxAmount > 0) {
+    const taxLabel = body.taxRate ? `Tax (${body.taxRate}%)` : "Tax";
+    lines.push(`  ${taxLabel}:${" ".repeat(Math.max(1, 14 - taxLabel.length))}${formatCurrency(body.taxAmount)}`);
   }
   lines.push("  ─────────────────────────────────");
   lines.push(`  TOTAL:        ${formatCurrency(body.total)}`);

@@ -384,6 +384,12 @@ export function PaperQuoteView({
             </Text>
           </View>
         )}
+        {totals.taxRate > 0 && (
+          <View style={styles.totalRow}>
+            <Text style={[txt({ color: t.bodySubText })]}>Tax ({totals.taxRate}%)</Text>
+            <Text style={[txt({ textAlign: "right" as const })]}>${totals.taxAmount.toFixed(2)}</Text>
+          </View>
+        )}
       </View>
 
       {isTypewriter ? (

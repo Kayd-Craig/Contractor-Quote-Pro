@@ -26,6 +26,8 @@ import { SendQuoteModal } from "@/components/SendQuoteModal";
 import type { LineItem, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
+import { extractZipFromAddress } from "@/utils/extractZip";
+import { getTaxRateForZip } from "@/utils/taxRates";
 import { useSearchProducts } from "@workspace/api-client-react";
 
 type AddMode = "material" | "labor" | null;
@@ -62,11 +64,16 @@ export default function QuoteDetailScreen() {
     );
   }
 
+  const zip = extractZipFromAddress(quote.jobAddress, settings.zipCode);
+  const taxInfo = zip ? getTaxRateForZip(zip) : null;
+  const taxRate = taxInfo?.rate ?? 0;
+
   const totals = calculateTotals(
     quote.lineItems,
     quote.markupOverride ?? settings.defaultMarkup,
     quote.discountAmount,
-    quote.discountType
+    quote.discountType,
+    taxRate
   );
   const materials = quote.lineItems.filter((i) => i.type === "material");
   const labor = quote.lineItems.filter((i) => i.type === "labor");
@@ -451,6 +458,38 @@ export default function QuoteDetailScreen() {
               <Feather name="tag" size={13} color="rgba(255,255,255,0.65)" />
               <Text style={styles.addDiscountText}>Add Discount</Text>
             </TouchableOpacity>
+          )}
+
+          {/* Tax Row */}
+          {totals.taxRate > 0 && (
+            <View style={styles.summaryEditRow}>
+              <View style={styles.summaryEditLeft}>
+                <Text style={styles.summaryEditLabel}>
+                  Tax ({taxInfo?.stateAbbr ?? ""})
+                </Text>
+                <View style={styles.markupBadge}>
+                  <Text style={styles.markupBadgeText}>{totals.taxRate}%</Text>
+                </View>
+              </View>
+              <Text style={styles.summaryEditValue}>
+                +${totals.taxAmount.toFixed(2)}
+              </Text>
+            </View>
+          )}
+          {totals.taxRate === 0 && taxInfo === null && (
+            <View style={styles.summaryEditRow}>
+              <View style={styles.summaryEditLeft}>
+                <Text style={[styles.summaryEditLabel, { opacity: 0.6 }]}>
+                  Tax
+                </Text>
+                <Text style={[styles.resetLink, { fontSize: 10 }]}>
+                  add zip to address
+                </Text>
+              </View>
+              <Text style={[styles.summaryEditValue, { opacity: 0.5 }]}>
+                --
+              </Text>
+            </View>
           )}
 
           <View style={styles.summaryDivider} />
