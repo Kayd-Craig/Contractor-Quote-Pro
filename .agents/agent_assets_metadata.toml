@@ -1,8 +1,43 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "wPB0fTmqSUV_xUpVRiCeR"
 uri = "file://artifacts/mobile/assets/images/icon.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "ZaJheJaXkpajDOu-zsH88"
+uri = "file://artifacts/mobile/assets/mockups/screen1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Rl__hS86SFoaboQOOeBVS"
+uri = "file://artifacts/mobile/assets/mockups/screen2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "WZPYyfVOtlGaeIN-e-l3x"
+uri = "file://artifacts/mobile/assets/mockups/screen3.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "pw-Yi2ZCadGXlSNrFzrQl"
+uri = "file://artifacts/mobile/assets/mockups/screen1.png"
+type = "image"
+title = "Screen 1 — My Quotes (Home)"
+
+[[outputs]]
+id = "4P2bzR5mtPbUos0QS_09U"
+uri = "file://artifacts/mobile/assets/mockups/screen2.png"
+type = "image"
+title = "Screen 2 — Quote Detail with Summary"
+
+[[outputs]]
+id = "kjRt9qPTebZr_Ty9lnc44"
+uri = "file://artifacts/mobile/assets/mockups/screen3.png"
+type = "image"
+title = "Screen 3 — Find Materials Search"
