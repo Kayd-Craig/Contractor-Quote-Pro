@@ -14,7 +14,6 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { QuoteCard } from "@/components/QuoteCard";
-import { QuickQuoteLogo } from "@/components/QuickQuoteLogo";
 import type { Quote } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
@@ -73,7 +72,9 @@ export default function QuotesScreen() {
         ]}
       >
         <View>
-          <QuickQuoteLogo size={28} color={colors.primary} />
+          <Text style={[styles.brandName, { color: colors.primary }]}>
+            Quick Quote
+          </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             {quotes.length} quote{quotes.length !== 1 ? "s" : ""}
           </Text>
