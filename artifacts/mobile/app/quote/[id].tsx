@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LineItemRow } from "@/components/LineItemRow";
+import { PaperQuoteView } from "@/components/PaperQuoteView";
 import { PhotosSection } from "@/components/PhotosSection";
 import type { Product } from "@/components/ProductCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -39,6 +40,7 @@ export default function QuoteDetailScreen() {
   const quote = quotes.find((q) => q.id === id);
   const [addMode, setAddMode] = useState<AddMode>(null);
   const [showSend, setShowSend] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [editingMarkup, setEditingMarkup] = useState(false);
   const [markupInput, setMarkupInput] = useState("");
   const [showDiscountEditor, setShowDiscountEditor] = useState(false);
@@ -141,12 +143,20 @@ export default function QuoteDetailScreen() {
             <Feather name="chevron-down" size={11} color={STATUS_COLORS[quote.status]} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={[styles.sendBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setShowSend(true)}
-        >
-          <Feather name="send" size={16} color={colors.primaryForeground} />
-        </TouchableOpacity>
+        <View style={styles.headerBtns}>
+          <TouchableOpacity
+            style={[styles.headerIconBtn, { backgroundColor: colors.secondary, borderColor: colors.border }]}
+            onPress={() => setShowPreview(true)}
+          >
+            <Feather name="file-text" size={16} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sendBtn, { backgroundColor: colors.primary }]}
+            onPress={() => setShowSend(true)}
+          >
+            <Feather name="send" size={16} color={colors.primaryForeground} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -472,6 +482,58 @@ export default function QuoteDetailScreen() {
           updateQuote(quote.id, { status: "sent" });
         }}
       />
+
+      {/* Paper preview modal */}
+      <Modal
+        visible={showPreview}
+        animationType="slide"
+        onRequestClose={() => setShowPreview(false)}
+      >
+        <View style={[styles.previewModalContainer, { backgroundColor: "#2C2C24" }]}>
+          <View
+            style={[
+              styles.previewModalHeader,
+              { paddingTop: topPad + 8, backgroundColor: "#1a1a14", borderBottomColor: "#3a3a30" },
+            ]}
+          >
+            <Text style={styles.previewModalTitle}>Quote Preview</Text>
+            <TouchableOpacity
+              style={styles.previewModalClose}
+              onPress={() => setShowPreview(false)}
+            >
+              <Feather name="x" size={22} color="#FAFAF2" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.previewModalScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <PaperQuoteView
+              customerName={quote.customerName}
+              customerEmail={quote.customerEmail}
+              customerPhone={quote.customerPhone}
+              jobAddress={quote.jobAddress}
+              jobDescription={quote.jobDescription}
+              lineItems={quote.lineItems}
+              settings={settings}
+              totals={totals}
+              createdAt={quote.createdAt}
+            />
+          </ScrollView>
+          <TouchableOpacity
+            style={[styles.previewSendBtn, { backgroundColor: colors.primary }]}
+            onPress={() => {
+              setShowPreview(false);
+              setTimeout(() => setShowSend(true), 300);
+            }}
+          >
+            <Feather name="send" size={18} color={colors.primaryForeground} />
+            <Text style={[styles.previewSendBtnText, { color: colors.primaryForeground }]}>
+              Send This Quote
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -994,6 +1056,49 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   headerCenter: { flex: 1, gap: 4 },
   headerName: { fontSize: 17, fontFamily: "Inter_600SemiBold" },
+  headerBtns: { flexDirection: "row", alignItems: "center", gap: 8 },
+  headerIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  previewModalContainer: { flex: 1 },
+  previewModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  previewModalTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FAFAF2",
+  },
+  previewModalClose: { padding: 4 },
+  previewModalScroll: {
+    padding: 20,
+    paddingBottom: 16,
+  },
+  previewSendBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 34,
+    marginTop: 12,
+    paddingVertical: 15,
+    borderRadius: 14,
+  },
+  previewSendBtnText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+  },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",

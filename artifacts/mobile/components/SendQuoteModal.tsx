@@ -3,14 +3,12 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Modal,
   Platform,
   ScrollView,
   Share,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -20,6 +18,7 @@ import { useSendQuote } from "@workspace/api-client-react";
 import type { Quote } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
+import { PaperQuoteView } from "@/components/PaperQuoteView";
 
 interface Props {
   visible: boolean;
@@ -117,24 +116,19 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.summaryBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
-            {settings.logoUri ? (
-              <Image
-                source={{ uri: settings.logoUri }}
-                style={styles.summaryLogo}
-                resizeMode="contain"
-              />
-            ) : null}
-            <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>
-              Quote for
-            </Text>
-            <Text style={[styles.summaryName, { color: colors.foreground }]}>
-              {quote.customerName}
-            </Text>
-            <Text style={[styles.summaryTotal, { color: colors.primary }]}>
-              Total: ${totals.total.toFixed(2)}
-            </Text>
-          </View>
+          <PaperQuoteView
+            customerName={quote.customerName}
+            customerEmail={quote.customerEmail}
+            customerPhone={quote.customerPhone}
+            jobAddress={quote.jobAddress}
+            jobDescription={quote.jobDescription}
+            lineItems={quote.lineItems}
+            settings={settings}
+            totals={totals}
+            createdAt={quote.createdAt}
+            scrollable
+            maxHeight={260}
+          />
 
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
             SEND VIA
@@ -238,33 +232,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: "Inter_700Bold",
-  },
-  summaryBox: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
-    gap: 3,
-  },
-  summaryLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    marginBottom: 6,
-    backgroundColor: "transparent",
-  },
-  summaryLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  summaryName: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-  },
-  summaryTotal: {
-    fontSize: 18,
     fontFamily: "Inter_700Bold",
   },
   sectionLabel: {
