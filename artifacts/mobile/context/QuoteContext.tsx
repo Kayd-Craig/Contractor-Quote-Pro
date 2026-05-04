@@ -61,6 +61,7 @@ export interface ContractorSettings {
   preferredStore?: PreferredStore;
   stripeAccountId?: string;
   stripeOnboarded?: boolean;
+  onboardingComplete?: boolean;
 }
 
 export interface QuoteTotals {

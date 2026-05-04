@@ -31,6 +31,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 React Native (Expo) app for contractors to create on-site job quotes.
 
 ### Key Features
+- **First-launch onboarding**: requires name, phone, and zip code before accessing the app; business name, license, and email are optional. Rendered directly in root layout when `settings.onboardingComplete` is false.
 - Product search with mock HD/Lowe's data (debounced auto-search)
 - Manual material entry with custom supplier name (for suppliers without online catalogs)
 - Materials/labor split with labor unit-type picker (per Hour, Sq Ft, Lin Ft, Day, Flat Rate)
