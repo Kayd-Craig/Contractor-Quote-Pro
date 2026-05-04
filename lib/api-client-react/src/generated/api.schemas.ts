@@ -59,6 +59,32 @@ export interface QuoteLineItem {
   sku?: string | null;
 }
 
+export interface CreatePaymentRequest {
+  customerName: string;
+  customerEmail?: string | null;
+  jobDescription: string;
+  /** Total amount in dollars */
+  amount: number;
+  quoteId?: string | null;
+  contractorName?: string | null;
+  businessName?: string | null;
+}
+
+export interface CreatePaymentResult {
+  success: boolean;
+  sessionId: string;
+  paymentUrl?: string | null;
+}
+
+export interface PaymentStatusResult {
+  sessionId: string;
+  /** Payment status: paid, unpaid, no_payment_required */
+  status: string;
+  amountTotal: number;
+  customerEmail?: string | null;
+  paymentUrl?: string | null;
+}
+
 export type SendQuoteRequestDiscountType =
   | (typeof SendQuoteRequestDiscountType)[keyof typeof SendQuoteRequestDiscountType]
   | null;

@@ -37,6 +37,9 @@ export interface Quote {
   discountType?: "percent" | "flat";
   quoteFont?: QuoteFont;
   quoteTemplate?: QuoteTemplate;
+  paymentSessionId?: string;
+  paymentUrl?: string;
+  paymentStatus?: "unpaid" | "paid" | "pending";
   createdAt: string;
   updatedAt: string;
 }

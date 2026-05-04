@@ -57,6 +57,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProductSearchResult"
 
+  /quotes/payment:
+    post:
+      operationId: createPayment
+      tags: [quotes]
+      summary: Create a Stripe checkout session for quote payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "200":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatePaymentResult"
+
+  /quotes/payment-status/{sessionId}:
+    get:
+      operationId: getPaymentStatus
+      tags: [quotes]
+      summary: Check payment status for a checkout session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentStatusResult"
+
   /quotes/send:
     post:
       operationId: sendQuote
@@ -174,6 +212,68 @@ components:
         - unit
         - unitPrice
         - markupPercent
+
+    CreatePaymentRequest:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+          nullable: true
+        jobDescription:
+          type: string
+        amount:
+          type: number
+          description: Total amount in dollars
+        quoteId:
+          type: string
+          nullable: true
+        contractorName:
+          type: string
+          nullable: true
+        businessName:
+          type: string
+          nullable: true
+      required:
+        - customerName
+        - jobDescription
+        - amount
+
+    CreatePaymentResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        sessionId:
+          type: string
+        paymentUrl:
+          type: string
+          nullable: true
+      required:
+        - success
+        - sessionId
+
+    PaymentStatusResult:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        status:
+          type: string
+          description: "Payment status: paid, unpaid, no_payment_required"
+        amountTotal:
+          type: number
+        customerEmail:
+          type: string
+          nullable: true
+        paymentUrl:
+          type: string
+          nullable: true
+      required:
+        - sessionId
+        - status
+        - amountTotal
 
     SendQuoteRequest:
       type: object

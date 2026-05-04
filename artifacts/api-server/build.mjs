@@ -35,6 +35,8 @@ async function buildAll() {
       "canvas",
       "pdfkit",
       "fontkit",
+      "stripe",
+      "stripe-replit-sync",
       "bcrypt",
       "argon2",
       "fsevents",

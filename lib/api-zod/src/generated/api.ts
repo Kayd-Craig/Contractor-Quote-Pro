@@ -54,6 +54,42 @@ export const SearchProductsResponse = zod.object({
 });
 
 /**
+ * @summary Create a Stripe checkout session for quote payment
+ */
+export const CreatePaymentBody = zod.object({
+  customerName: zod.string(),
+  customerEmail: zod.string().nullish(),
+  jobDescription: zod.string(),
+  amount: zod.number().describe("Total amount in dollars"),
+  quoteId: zod.string().nullish(),
+  contractorName: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+});
+
+export const CreatePaymentResponse = zod.object({
+  success: zod.boolean(),
+  sessionId: zod.string(),
+  paymentUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary Check payment status for a checkout session
+ */
+export const GetPaymentStatusParams = zod.object({
+  sessionId: zod.coerce.string(),
+});
+
+export const GetPaymentStatusResponse = zod.object({
+  sessionId: zod.string(),
+  status: zod
+    .string()
+    .describe("Payment status: paid, unpaid, no_payment_required"),
+  amountTotal: zod.number(),
+  customerEmail: zod.string().nullish(),
+  paymentUrl: zod.string().nullish(),
+});
+
+/**
  * @summary Send a formatted quote to the customer
  */
 export const SendQuoteBody = zod.object({

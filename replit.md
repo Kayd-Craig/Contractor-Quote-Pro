@@ -65,10 +65,23 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - Adaptive icon: `artifacts/mobile/assets/images/adaptive-icon.png`
 - Preferred store filter: "all" | "homedepot" | "lowes" (saved in settings)
 
+### Stripe Payment Collection
+- Contractor taps "Request Payment" on sent/accepted quotes → creates Stripe Checkout Session → shares payment link with client
+- Payment status tracked per-quote: unpaid → pending → paid
+- Stripe webhook at `/api/stripe/webhook` (registered before express.json() for raw body parsing)
+- Public success/cancelled pages at `/api/payment-success` and `/api/payment-cancelled` (no auth required)
+- Stripe credentials fetched via Replit connectors API (settings keys: `secret`, `publishable`, `account_id`)
+- Database: PostgreSQL with `stripe` schema managed by `stripe-replit-sync` (auto-migrations on startup)
+- Dependencies: `stripe`, `stripe-replit-sync` (externalized in esbuild config)
+
 ### Important Files
 - `artifacts/mobile/context/QuoteContext.tsx` — all state, types, AsyncStorage persistence
 - `artifacts/mobile/components/PaperQuoteView.tsx` — themed paper quote with font/template support
-- `artifacts/mobile/app/quote/[id].tsx` — quote detail, add items, preview modal with style pickers
+- `artifacts/mobile/app/quote/[id].tsx` — quote detail, add items, preview modal with style pickers, payment UI
 - `artifacts/mobile/components/SendQuoteModal.tsx` — send flow with paper preview
 - `artifacts/mobile/app/(tabs)/settings.tsx` — contractor profile, logo upload, markup/discount defaults
 - `artifacts/api-server/src/routes/products.ts` — mock product catalog
+- `artifacts/api-server/src/routes/payments.ts` — Stripe checkout session creation + payment status
+- `artifacts/api-server/src/stripeClient.ts` — Stripe client + StripeSync via Replit connectors
+- `artifacts/api-server/src/webhookHandlers.ts` — Stripe webhook processing
+- `artifacts/api-server/src/app.ts` — Express app with webhook route before JSON parsing

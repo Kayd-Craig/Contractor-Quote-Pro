@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -28,7 +29,9 @@ import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 import { extractZipFromAddress } from "@/utils/extractZip";
 import { getTaxRateForZip } from "@/utils/taxRates";
-import { useSearchProducts } from "@workspace/api-client-react";
+import { useSearchProducts, useCreatePayment } from "@workspace/api-client-react";
+import * as WebBrowser from "expo-web-browser";
+import * as Sharing from "expo-sharing";
 
 type AddMode = "material" | "labor" | null;
 
@@ -49,6 +52,8 @@ export default function QuoteDetailScreen() {
   const [discountInput, setDiscountInput] = useState("");
   const [discountTypeLocal, setDiscountTypeLocal] = useState<"percent" | "flat">("percent");
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const { mutateAsync: createPaymentApi } = useCreatePayment();
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
@@ -126,6 +131,72 @@ export default function QuoteDetailScreen() {
           { text: "Delete", style: "destructive", onPress: doDelete },
         ]
       );
+    }
+  }
+
+  async function handleRequestPayment() {
+    if (!quote || totals.total <= 0) return;
+    setPaymentLoading(true);
+    try {
+      const result = await createPaymentApi({
+        data: {
+          customerName: quote.customerName,
+          customerEmail: quote.customerEmail || undefined,
+          jobDescription: quote.jobDescription,
+          amount: totals.total,
+          quoteId: quote.id,
+          contractorName: settings.name || undefined,
+          businessName: settings.businessName || undefined,
+        },
+      });
+
+      if (result.paymentUrl) {
+        updateQuote(quote.id, {
+          paymentSessionId: result.sessionId,
+          paymentUrl: result.paymentUrl,
+          paymentStatus: "pending",
+        });
+
+        if (Platform.OS === "web") {
+          window.open(result.paymentUrl, "_blank");
+        } else {
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            await Share.share({
+              message: `Payment link for your ${quote.jobDescription} quote: ${result.paymentUrl}`,
+              url: result.paymentUrl,
+            });
+          } else {
+            await WebBrowser.openBrowserAsync(result.paymentUrl);
+          }
+        }
+      }
+    } catch (err: any) {
+      const msg = err?.message || "Failed to create payment link";
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Payment Error", msg);
+      }
+    } finally {
+      setPaymentLoading(false);
+    }
+  }
+
+  async function handleSharePaymentLink() {
+    if (!quote?.paymentUrl) return;
+    try {
+      if (Platform.OS === "web") {
+        await navigator.clipboard.writeText(quote.paymentUrl);
+        window.alert("Payment link copied to clipboard!");
+      } else {
+        await Share.share({
+          message: `Payment link for your ${quote.jobDescription} quote: ${quote.paymentUrl}`,
+          url: quote.paymentUrl,
+        });
+      }
+    } catch {
+      // user cancelled share
     }
   }
 
@@ -513,6 +584,78 @@ export default function QuoteDetailScreen() {
             Send Quote to Customer
           </Text>
         </TouchableOpacity>
+
+        {/* Payment Section */}
+        {(quote.status === "sent" || quote.status === "accepted") && totals.total > 0 && (
+          <View style={{ marginTop: 12 }}>
+            {quote.paymentStatus === "paid" ? (
+              <View style={[styles.paymentBanner, { backgroundColor: colors.success + "18", borderColor: colors.success + "40" }]}>
+                <View style={[styles.paymentIconCircle, { backgroundColor: colors.success }]}>
+                  <Feather name="check" size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.paymentBannerTitle, { color: colors.success }]}>Payment Received</Text>
+                  <Text style={[styles.paymentBannerSub, { color: colors.mutedForeground }]}>
+                    ${totals.total.toFixed(2)} paid via Stripe
+                  </Text>
+                </View>
+              </View>
+            ) : quote.paymentStatus === "pending" && quote.paymentUrl ? (
+              <View>
+                <View style={[styles.paymentBanner, { backgroundColor: "#FFF3E0", borderColor: "#FFB74D40" }]}>
+                  <View style={[styles.paymentIconCircle, { backgroundColor: "#F57C00" }]}>
+                    <Feather name="clock" size={18} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.paymentBannerTitle, { color: "#E65100" }]}>Payment Pending</Text>
+                    <Text style={[styles.paymentBannerSub, { color: colors.mutedForeground }]}>
+                      Waiting for client to complete payment
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.paymentShareBtn, { backgroundColor: colors.accent }]}
+                  onPress={handleSharePaymentLink}
+                  activeOpacity={0.85}
+                >
+                  <Feather name="share-2" size={18} color="#fff" />
+                  <Text style={styles.paymentShareText}>Share Payment Link Again</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.paymentNewBtn, { borderColor: colors.border }]}
+                  onPress={handleRequestPayment}
+                  disabled={paymentLoading}
+                  activeOpacity={0.85}
+                >
+                  {paymentLoading ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <>
+                      <Feather name="refresh-cw" size={16} color={colors.primary} />
+                      <Text style={[styles.paymentNewText, { color: colors.primary }]}>Generate New Payment Link</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.paymentRequestBtn, { backgroundColor: "#2E7D32" }]}
+                onPress={handleRequestPayment}
+                disabled={paymentLoading}
+                activeOpacity={0.85}
+              >
+                {paymentLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Feather name="dollar-sign" size={20} color="#fff" />
+                    <Text style={styles.paymentRequestText}>Request Payment</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </ScrollView>
 
       {/* Add Item Modal */}
@@ -1575,6 +1718,71 @@ const styles = StyleSheet.create({
   bigSendText: {
     fontSize: 17,
     fontFamily: "Inter_700Bold",
+  },
+  paymentBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  paymentIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  paymentBannerTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 2,
+  },
+  paymentBannerSub: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
+  paymentRequestBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  paymentRequestText: {
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
+  paymentShareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 10,
+  },
+  paymentShareText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+  },
+  paymentNewBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 14,
+    marginTop: 8,
+    borderWidth: 1,
+  },
+  paymentNewText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
   },
   // Modal styles
   modalOverlay: { flex: 1, justifyContent: "flex-end" },

@@ -17,7 +17,10 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreatePaymentRequest,
+  CreatePaymentResult,
   HealthStatus,
+  PaymentStatusResult,
   ProductSearchResult,
   SearchProductsParams,
   SendQuoteRequest,
@@ -195,6 +198,181 @@ export function useSearchProducts<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getSearchProductsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a Stripe checkout session for quote payment
+ */
+export const getCreatePaymentUrl = () => {
+  return `/api/quotes/payment`;
+};
+
+export const createPayment = async (
+  createPaymentRequest: CreatePaymentRequest,
+  options?: RequestInit,
+): Promise<CreatePaymentResult> => {
+  return customFetch<CreatePaymentResult>(getCreatePaymentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPaymentRequest),
+  });
+};
+
+export const getCreatePaymentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPayment>>,
+    TError,
+    { data: BodyType<CreatePaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPayment>>,
+  TError,
+  { data: BodyType<CreatePaymentRequest> },
+  TContext
+> => {
+  const mutationKey = ["createPayment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPayment>>,
+    { data: BodyType<CreatePaymentRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPayment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePaymentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPayment>>
+>;
+export type CreatePaymentMutationBody = BodyType<CreatePaymentRequest>;
+export type CreatePaymentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a Stripe checkout session for quote payment
+ */
+export const useCreatePayment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPayment>>,
+    TError,
+    { data: BodyType<CreatePaymentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPayment>>,
+  TError,
+  { data: BodyType<CreatePaymentRequest> },
+  TContext
+> => {
+  return useMutation(getCreatePaymentMutationOptions(options));
+};
+
+/**
+ * @summary Check payment status for a checkout session
+ */
+export const getGetPaymentStatusUrl = (sessionId: string) => {
+  return `/api/quotes/payment-status/${sessionId}`;
+};
+
+export const getPaymentStatus = async (
+  sessionId: string,
+  options?: RequestInit,
+): Promise<PaymentStatusResult> => {
+  return customFetch<PaymentStatusResult>(getGetPaymentStatusUrl(sessionId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPaymentStatusQueryKey = (sessionId: string) => {
+  return [`/api/quotes/payment-status/${sessionId}`] as const;
+};
+
+export const getGetPaymentStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaymentStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  sessionId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPaymentStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPaymentStatusQueryKey(sessionId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPaymentStatus>>
+  > = ({ signal }) =>
+    getPaymentStatus(sessionId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!sessionId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPaymentStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaymentStatus>>
+>;
+export type GetPaymentStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Check payment status for a checkout session
+ */
+
+export function useGetPaymentStatus<
+  TData = Awaited<ReturnType<typeof getPaymentStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  sessionId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPaymentStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPaymentStatusQueryOptions(sessionId, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
