@@ -1573,8 +1573,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(250,250,242,0.15)",
   },
   templateChipActive: {
-    borderColor: "#E87722",
-    backgroundColor: "rgba(232,119,34,0.15)",
+    borderColor: "#2E7D32",
+    backgroundColor: "rgba(46,125,50,0.15)",
   },
   templatePreview: {
     width: 32,
@@ -1603,7 +1603,7 @@ const styles = StyleSheet.create({
     color: "rgba(250,250,242,0.6)",
   },
   templateChipTextActive: {
-    color: "#E87722",
+    color: "#2E7D32",
   },
   fontChip: {
     alignItems: "center",
@@ -1615,8 +1615,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(250,250,242,0.15)",
   },
   fontChipActive: {
-    borderColor: "#E87722",
-    backgroundColor: "rgba(232,119,34,0.15)",
+    borderColor: "#2E7D32",
+    backgroundColor: "rgba(46,125,50,0.15)",
   },
   fontChipPreview: {
     fontSize: 16,
@@ -1624,7 +1624,7 @@ const styles = StyleSheet.create({
     color: "rgba(250,250,242,0.7)",
   },
   fontChipPreviewActive: {
-    color: "#E87722",
+    color: "#2E7D32",
   },
   fontChipText: {
     fontSize: 10,
@@ -1632,6 +1632,6 @@ const styles = StyleSheet.create({
     color: "rgba(250,250,242,0.6)",
   },
   fontChipTextActive: {
-    color: "#E87722",
+    color: "#2E7D32",
   },
 });

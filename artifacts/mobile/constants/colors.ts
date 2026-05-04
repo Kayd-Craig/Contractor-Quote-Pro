@@ -1,7 +1,7 @@
 const colors = {
   light: {
     text: "#1A1A2E",
-    tint: "#E87722",
+    tint: "#2E7D32",
 
     background: "#F7F6F4",
     foreground: "#1A1A2E",
@@ -9,7 +9,7 @@ const colors = {
     card: "#FFFFFF",
     cardForeground: "#1A1A2E",
 
-    primary: "#E87722",
+    primary: "#2E7D32",
     primaryForeground: "#FFFFFF",
 
     secondary: "#F0EDE8",
@@ -30,7 +30,7 @@ const colors = {
     success: "#16A34A",
     successForeground: "#FFFFFF",
 
-    warning: "#D97706",
+    warning: "#F59E0B",
     warningForeground: "#FFFFFF",
 
     homedepot: "#F96302",

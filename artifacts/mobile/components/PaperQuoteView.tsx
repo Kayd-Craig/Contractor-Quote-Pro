@@ -93,15 +93,15 @@ const TEMPLATE_THEMES: Record<QuoteTemplate, TemplateColors> = {
   },
   bold: {
     paper: "#FFFFFF",
-    headerBg: "#E87722",
+    headerBg: "#2E7D32",
     headerText: "#FFFFFF",
     headerSubText: "rgba(255,255,255,0.85)",
     bodyText: "#111111",
     bodySubText: "#555555",
     divider: "#E0E0E0",
-    accent: "#E87722",
+    accent: "#2E7D32",
     border: "#EEEEEE",
-    totalBg: "#FFF5EC",
+    totalBg: "#F0FFF0",
     footerText: "#888888",
   },
   minimal: {
@@ -122,7 +122,7 @@ const TEMPLATE_THEMES: Record<QuoteTemplate, TemplateColors> = {
 export const TEMPLATE_OPTIONS: { key: QuoteTemplate; label: string; colors: [string, string, string] }[] = [
   { key: "typewriter", label: "Typewriter", colors: ["#FAFAF2", "#3a3a28", "#9a9874"] },
   { key: "professional", label: "Professional", colors: ["#1A3A5C", "#FFFFFF", "#D0D5DD"] },
-  { key: "bold", label: "Bold", colors: ["#E87722", "#FFFFFF", "#FFF5EC"] },
+  { key: "bold", label: "Bold", colors: ["#2E7D32", "#FFFFFF", "#F0FFF0"] },
   { key: "minimal", label: "Minimal", colors: ["#FAFAFA", "#111111", "#E8E8E8"] },
 ];
 
