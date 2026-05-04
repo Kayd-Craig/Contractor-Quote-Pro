@@ -67,6 +67,7 @@ React Native (Expo) app for contractors to create on-site job quotes.
 
 ### Stripe Payment Collection
 - Contractor taps "Request Payment" on sent/accepted quotes → creates Stripe Checkout Session → shares payment link with client
+- **Service fee**: 3% + $0.50 per transaction, added as a separate line item in Stripe Checkout so clients see the breakdown
 - Payment status tracked per-quote: unpaid → pending → paid
 - Stripe webhook at `/api/stripe/webhook` (registered before express.json() for raw body parsing)
 - Public success/cancelled pages at `/api/payment-success` and `/api/payment-cancelled` (no auth required)

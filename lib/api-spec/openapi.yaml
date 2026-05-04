@@ -250,6 +250,9 @@ components:
         paymentUrl:
           type: string
           nullable: true
+        serviceFee:
+          type: number
+          description: Service fee amount in dollars (3% + $0.50)
       required:
         - success
         - sessionId

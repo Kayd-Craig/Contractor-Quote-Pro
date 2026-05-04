@@ -74,6 +74,8 @@ export interface CreatePaymentResult {
   success: boolean;
   sessionId: string;
   paymentUrl?: string | null;
+  /** Service fee amount in dollars (3% + $0.50) */
+  serviceFee?: number;
 }
 
 export interface PaymentStatusResult {

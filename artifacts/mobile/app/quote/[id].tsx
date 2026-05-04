@@ -638,21 +638,26 @@ export default function QuoteDetailScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity
-                style={[styles.paymentRequestBtn, { backgroundColor: "#2E7D32" }]}
-                onPress={handleRequestPayment}
-                disabled={paymentLoading}
-                activeOpacity={0.85}
-              >
-                {paymentLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
-                    <Feather name="dollar-sign" size={20} color="#fff" />
-                    <Text style={styles.paymentRequestText}>Request Payment</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={[styles.paymentRequestBtn, { backgroundColor: "#2E7D32" }]}
+                  onPress={handleRequestPayment}
+                  disabled={paymentLoading}
+                  activeOpacity={0.85}
+                >
+                  {paymentLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Feather name="dollar-sign" size={20} color="#fff" />
+                      <Text style={styles.paymentRequestText}>Request Payment</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                <Text style={[styles.serviceFeeNote, { color: colors.mutedForeground }]}>
+                  A 3% + $0.50 service fee will be added at checkout
+                </Text>
+              </>
             )}
           </View>
         )}
@@ -1783,6 +1788,12 @@ const styles = StyleSheet.create({
   paymentNewText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
+  },
+  serviceFeeNote: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    marginTop: 8,
   },
   // Modal styles
   modalOverlay: { flex: 1, justifyContent: "flex-end" },

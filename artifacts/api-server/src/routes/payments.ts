@@ -5,6 +5,8 @@ import { getUncachableStripeClient } from "../stripeClient";
 const router = Router();
 
 const MAX_AMOUNT = 999_999.99;
+const SERVICE_FEE_PERCENT = 3;
+const SERVICE_FEE_FLAT_CENTS = 50;
 
 router.post("/quotes/payment", async (req: Request, res: Response) => {
   const {
@@ -31,6 +33,8 @@ router.post("/quotes/payment", async (req: Request, res: Response) => {
   }
 
   const amountCents = Math.round(amount * 100);
+  const serviceFeeCents = Math.round(amountCents * (SERVICE_FEE_PERCENT / 100)) + SERVICE_FEE_FLAT_CENTS;
+  const serviceFee = serviceFeeCents / 100;
 
   try {
     const stripe = await getUncachableStripeClient();
@@ -53,11 +57,23 @@ router.post("/quotes/payment", async (req: Request, res: Response) => {
           },
           quantity: 1,
         },
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Service Fee",
+              description: `${SERVICE_FEE_PERCENT}% + $${(SERVICE_FEE_FLAT_CENTS / 100).toFixed(2)} processing fee`,
+            },
+            unit_amount: serviceFeeCents,
+          },
+          quantity: 1,
+        },
       ],
       metadata: {
         quoteId: quoteId || "",
         customerName,
         jobDescription,
+        serviceFee: serviceFee.toFixed(2),
       },
       success_url: `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}/api/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}/api/payment-cancelled`,
@@ -73,6 +89,7 @@ router.post("/quotes/payment", async (req: Request, res: Response) => {
       success: true,
       sessionId: session.id,
       paymentUrl: session.url,
+      serviceFee,
     });
   } catch (err: any) {
     req.log.error({ err }, "Failed to create checkout session");

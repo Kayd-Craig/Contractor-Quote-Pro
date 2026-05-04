@@ -70,6 +70,10 @@ export const CreatePaymentResponse = zod.object({
   success: zod.boolean(),
   sessionId: zod.string(),
   paymentUrl: zod.string().nullish(),
+  serviceFee: zod
+    .number()
+    .optional()
+    .describe("Service fee amount in dollars (3% + $0.50)"),
 });
 
 /**
