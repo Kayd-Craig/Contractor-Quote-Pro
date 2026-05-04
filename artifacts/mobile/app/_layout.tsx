@@ -15,10 +15,11 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { QuoteProvider } from "@/context/QuoteContext";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl, setAuthTokenGetter } from "@workspace/api-client-react";
 
-// Configure API base URL
+// Configure API base URL and attach secret key to every request
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+setAuthTokenGetter(() => process.env.EXPO_PUBLIC_API_KEY ?? null);
 
 SplashScreen.preventAutoHideAsync();
 
