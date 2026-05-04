@@ -70,6 +70,18 @@ interface QuoteContextType {
   removePhoto: (quoteId: string, uri: string) => void;
   updateSettings: (data: Partial<ContractorSettings>) => void;
   calculateTotals: (items: LineItem[], defaultMarkup?: number) => QuoteTotals;
+  getCustomers: () => Customer[];
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  lastAddress?: string;
+  quoteCount: number;
+  totalSpent: number;
+  lastQuoteDate: string;
 }
 
 const defaultSettings: ContractorSettings = {
@@ -297,6 +309,49 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     [settings.defaultMarkup]
   );
 
+  const getCustomers = useCallback((): Customer[] => {
+    const map = new Map<string, Customer>();
+    for (const quote of quotes) {
+      const key = `${quote.customerName.trim().toLowerCase()}|${(quote.customerPhone ?? "").trim()}`;
+      const totals = (() => {
+        let materialBase = 0;
+        let laborBase = 0;
+        for (const item of quote.lineItems) {
+          const base = item.quantity * item.unitPrice;
+          if (item.type === "material") materialBase += base;
+          else laborBase += base;
+        }
+        const markup = settings.defaultMarkup;
+        const markupAmount = (materialBase + laborBase) * (markup / 100);
+        return materialBase + laborBase + markupAmount;
+      })();
+
+      const existing = map.get(key);
+      if (existing) {
+        existing.quoteCount += 1;
+        existing.totalSpent += totals;
+        if (quote.createdAt > existing.lastQuoteDate) {
+          existing.lastQuoteDate = quote.createdAt;
+          if (quote.jobAddress) existing.lastAddress = quote.jobAddress;
+        }
+      } else {
+        map.set(key, {
+          id: key,
+          name: quote.customerName,
+          phone: quote.customerPhone ?? undefined,
+          email: quote.customerEmail ?? undefined,
+          lastAddress: quote.jobAddress ?? undefined,
+          quoteCount: 1,
+          totalSpent: totals,
+          lastQuoteDate: quote.createdAt,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) =>
+      b.lastQuoteDate.localeCompare(a.lastQuoteDate)
+    );
+  }, [quotes, settings.defaultMarkup]);
+
   return (
     <QuoteContext.Provider
       value={{
@@ -313,6 +368,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         removePhoto,
         updateSettings,
         calculateTotals,
+        getCustomers,
       }}
     >
       {children}

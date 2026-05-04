@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import {
   Alert,
   Platform,
@@ -15,19 +15,22 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CustomerPicker } from "@/components/CustomerPicker";
+import type { Customer } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 
 export default function NewQuoteScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { createQuote, settings } = useQuotes();
+  const { createQuote, settings, getCustomers } = useQuotes();
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [jobAddress, setJobAddress] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const phoneRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
@@ -36,6 +39,10 @@ export default function NewQuoteScreen() {
 
   const bottomPad =
     Platform.OS === "web" ? 34 : insets.bottom > 0 ? insets.bottom : 24;
+
+  const customers = getCustomers();
+  const hasCustomers = customers.length > 0;
+  const recentThree = customers.slice(0, 3);
 
   function handleCreate() {
     if (!customerName.trim()) {
@@ -57,6 +64,25 @@ export default function NewQuoteScreen() {
     router.replace(`/quote/${quote.id}`);
   }
 
+  function handleSelectCustomer(customer: Customer) {
+    setCustomerName(customer.name);
+    setCustomerPhone(customer.phone ?? "");
+    setCustomerEmail(customer.email ?? "");
+    setJobAddress(customer.lastAddress ?? "");
+    setPickerVisible(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
+  function handleQuickFill(customer: Customer) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setCustomerName(customer.name);
+    setCustomerPhone(customer.phone ?? "");
+    setCustomerEmail(customer.email ?? "");
+    setJobAddress(customer.lastAddress ?? "");
+  }
+
+  const isFieldFilled = customerName || customerPhone || customerEmail;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Nav bar */}
@@ -77,7 +103,9 @@ export default function NewQuoteScreen() {
         >
           <Feather name="x" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.foreground }]}>New Quote</Text>
+        <Text style={[styles.navTitle, { color: colors.foreground }]}>
+          New Quote
+        </Text>
         <TouchableOpacity
           style={[styles.createBtn, { backgroundColor: colors.primary }]}
           onPress={handleCreate}
@@ -94,11 +122,119 @@ export default function NewQuoteScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: bottomPad + 20 }]}
       >
+        {/* ── Repeat Customer section ── */}
+        {hasCustomers && (
+          <View style={styles.repeatSection}>
+            <View style={styles.repeatHeader}>
+              <View style={styles.repeatTitleRow}>
+                <Feather name="users" size={14} color={colors.accent} />
+                <Text style={[styles.repeatTitle, { color: colors.accent }]}>
+                  Repeat Customer?
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.allCustomersBtn, { borderColor: colors.accent + "40" }]}
+                onPress={() => setPickerVisible(true)}
+              >
+                <Text style={[styles.allCustomersBtnText, { color: colors.accent }]}>
+                  All {customers.length}
+                </Text>
+                <Feather name="chevron-right" size={13} color={colors.accent} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Recent 3 quick-fill chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipRow}
+              keyboardShouldPersistTaps="handled"
+            >
+              {recentThree.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[
+                    styles.customerChip,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => handleQuickFill(c)}
+                  activeOpacity={0.75}
+                >
+                  <View
+                    style={[styles.chipAvatar, { backgroundColor: colors.primary + "20" }]}
+                  >
+                    <Text style={[styles.chipAvatarText, { color: colors.primary }]}>
+                      {c.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.chipInfo}>
+                    <Text
+                      style={[styles.chipName, { color: colors.foreground }]}
+                      numberOfLines={1}
+                    >
+                      {c.name.split(" ")[0]}
+                    </Text>
+                    <Text style={[styles.chipCount, { color: colors.mutedForeground }]}>
+                      {c.quoteCount} quote{c.quoteCount !== 1 ? "s" : ""}
+                    </Text>
+                  </View>
+                  <Feather name="zap" size={13} color={colors.primary} style={styles.chipZap} />
+                </TouchableOpacity>
+              ))}
+
+              {customers.length > 3 && (
+                <TouchableOpacity
+                  style={[
+                    styles.moreChip,
+                    { backgroundColor: colors.secondary, borderColor: colors.border },
+                  ]}
+                  onPress={() => setPickerVisible(true)}
+                >
+                  <Feather name="users" size={16} color={colors.mutedForeground} />
+                  <Text style={[styles.moreChipText, { color: colors.mutedForeground }]}>
+                    +{customers.length - 3} more
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+
+            {isFieldFilled && (
+              <TouchableOpacity
+                style={styles.clearRow}
+                onPress={() => {
+                  setCustomerName("");
+                  setCustomerPhone("");
+                  setCustomerEmail("");
+                  setJobAddress("");
+                }}
+              >
+                <Feather name="x-circle" size={12} color={colors.mutedForeground} />
+                <Text style={[styles.clearText, { color: colors.mutedForeground }]}>
+                  Clear fields
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Customer */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
           CUSTOMER
         </Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <InputRow
             icon="user"
             label="Customer Name *"
@@ -141,7 +277,12 @@ export default function NewQuoteScreen() {
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
           JOB DETAILS
         </Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <InputRow
             ref={addressRef}
             icon="map-pin"
@@ -177,7 +318,15 @@ export default function NewQuoteScreen() {
         </View>
 
         {settings.defaultMarkup > 0 && (
-          <View style={[styles.markupHint, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+          <View
+            style={[
+              styles.markupHint,
+              {
+                backgroundColor: colors.primary + "12",
+                borderColor: colors.primary + "30",
+              },
+            ]}
+          >
             <Feather name="percent" size={14} color={colors.primary} />
             <Text style={[styles.markupHintText, { color: colors.primary }]}>
               {settings.defaultMarkup}% markup will be applied automatically
@@ -185,11 +334,17 @@ export default function NewQuoteScreen() {
           </View>
         )}
       </KeyboardAwareScrollView>
+
+      {/* Customer picker modal */}
+      <CustomerPicker
+        visible={pickerVisible}
+        customers={customers}
+        onSelect={handleSelectCustomer}
+        onClose={() => setPickerVisible(false)}
+      />
     </View>
   );
 }
-
-import { forwardRef } from "react";
 
 const InputRow = forwardRef<
   TextInput,
@@ -204,10 +359,28 @@ const InputRow = forwardRef<
     onSubmit?: () => void;
     colors: ReturnType<typeof useColors>;
   }
->(function InputRow({ icon, label, value, onChange, placeholder, keyboardType = "default", returnKey = "done", onSubmit, colors }, ref) {
+>(function InputRow(
+  {
+    icon,
+    label,
+    value,
+    onChange,
+    placeholder,
+    keyboardType = "default",
+    returnKey = "done",
+    onSubmit,
+    colors,
+  },
+  ref
+) {
   return (
     <View style={styles.inputRow}>
-      <Feather name={icon} size={15} color={colors.mutedForeground} style={styles.inputIcon} />
+      <Feather
+        name={icon}
+        size={15}
+        color={colors.mutedForeground}
+        style={styles.inputIcon}
+      />
       <View style={styles.inputField}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>{label}</Text>
         <TextInput
@@ -238,25 +411,93 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  navBack: {
-    padding: 4,
-  },
-  navTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
-  },
+  navBack: { padding: 4 },
+  navTitle: { fontSize: 17, fontFamily: "Inter_600SemiBold" },
   createBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
-  createBtnText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
+  createBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  scroll: { padding: 16 },
+
+  /* Repeat customer section */
+  repeatSection: {
+    marginBottom: 6,
   },
-  scroll: {
-    padding: 16,
+  repeatHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
+  repeatTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  repeatTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+  },
+  allCustomersBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  allCustomersBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  chipRow: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  customerChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    minWidth: 120,
+    maxWidth: 160,
+  },
+  chipAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipAvatarText: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  chipInfo: { flex: 1 },
+  chipName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  chipCount: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  chipZap: { marginLeft: 2 },
+  moreChip: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 4,
+    minWidth: 70,
+  },
+  moreChipText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  clearRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 8,
+    alignSelf: "flex-start",
+  },
+  clearText: { fontSize: 12, fontFamily: "Inter_400Regular" },
+
   sectionTitle: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
@@ -281,22 +522,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
   },
-  inputIcon: {
-    width: 20,
-    textAlign: "center",
-  },
-  inputField: {
-    flex: 1,
-    gap: 2,
-  },
-  label: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-  },
-  fieldInput: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-  },
+  inputIcon: { width: 20, textAlign: "center" },
+  inputField: { flex: 1, gap: 2 },
+  label: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  fieldInput: { fontSize: 15, fontFamily: "Inter_400Regular" },
   descRow: {
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -323,8 +552,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 14,
   },
-  markupHintText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-  },
+  markupHintText: { fontSize: 13, fontFamily: "Inter_500Medium" },
 });
