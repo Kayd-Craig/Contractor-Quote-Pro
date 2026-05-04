@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Quick Quote API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Product search from home improvement stores
+  - name: quotes
+    description: Quote sending operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /products/search:
+    get:
+      operationId: searchProducts
+      tags: [products]
+      summary: Search products from Home Depot and Lowe's
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: store
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [homedepot, lowes, all]
+            default: all
+          description: Filter by store
+      responses:
+        "200":
+          description: Product search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductSearchResult"
+
+  /quotes/send:
+    post:
+      operationId: sendQuote
+      tags: [quotes]
+      summary: Send a formatted quote to the customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendQuoteRequest"
+      responses:
+        "200":
+          description: Quote sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendQuoteResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +86,156 @@ components:
       required:
         - status
 
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: number
+          description: Unit price in dollars
+        unit:
+          type: string
+          description: Unit of measure (each, sq ft, linear ft, bag, etc.)
+        store:
+          type: string
+          enum: [homedepot, lowes]
+        sku:
+          type: string
+        category:
+          type: string
+        inStock:
+          type: boolean
+        contractorPrice:
+          type: number
+          description: Contractor/pro price if available
+        imageUrl:
+          type: string
+      required:
+        - id
+        - name
+        - brand
+        - price
+        - unit
+        - store
+        - sku
+        - category
+        - inStock
+
+    ProductSearchResult:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        query:
+          type: string
+        total:
+          type: integer
+      required:
+        - products
+        - query
+        - total
+
+    QuoteLineItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [material, labor]
+        description:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+        unitPrice:
+          type: number
+        markupPercent:
+          type: number
+        store:
+          type: string
+          nullable: true
+        sku:
+          type: string
+          nullable: true
+      required:
+        - id
+        - type
+        - description
+        - quantity
+        - unit
+        - unitPrice
+        - markupPercent
+
+    SendQuoteRequest:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+          nullable: true
+        customerPhone:
+          type: string
+          nullable: true
+        jobAddress:
+          type: string
+          nullable: true
+        jobDescription:
+          type: string
+        contractorName:
+          type: string
+        contractorPhone:
+          type: string
+          nullable: true
+        contractorEmail:
+          type: string
+          nullable: true
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        materialSubtotal:
+          type: number
+        laborSubtotal:
+          type: number
+        markupAmount:
+          type: number
+        total:
+          type: number
+        sendMethod:
+          type: string
+          enum: [email, sms, both]
+      required:
+        - customerName
+        - jobDescription
+        - contractorName
+        - lineItems
+        - materialSubtotal
+        - laborSubtotal
+        - markupAmount
+        - total
+        - sendMethod
+
+    SendQuoteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        quoteText:
+          type: string
+          description: Formatted plain-text quote for sharing
+      required:
+        - success
+        - message
+        - quoteText
