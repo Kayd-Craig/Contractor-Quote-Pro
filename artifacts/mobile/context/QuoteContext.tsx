@@ -40,11 +40,51 @@ export interface Quote {
   paymentSessionId?: string;
   paymentUrl?: string;
   paymentStatus?: "unpaid" | "paid" | "pending";
+  scheduledDate?: string;
+  scheduledTimeSlot?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type PreferredStore = "all" | "homedepot" | "lowes";
+
+export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export const DAY_LABELS: Record<DayOfWeek, string> = {
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+  sun: "Sunday",
+};
+
+export const DAYS_ORDER: DayOfWeek[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+export interface DaySchedule {
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+export type WeeklySchedule = Record<DayOfWeek, DaySchedule>;
+
+export interface BlockedDate {
+  id: string;
+  date: string;
+  reason?: string;
+}
+
+export const DEFAULT_WEEKLY_SCHEDULE: WeeklySchedule = {
+  mon: { enabled: true, startTime: "08:00", endTime: "17:00" },
+  tue: { enabled: true, startTime: "08:00", endTime: "17:00" },
+  wed: { enabled: true, startTime: "08:00", endTime: "17:00" },
+  thu: { enabled: true, startTime: "08:00", endTime: "17:00" },
+  fri: { enabled: true, startTime: "08:00", endTime: "17:00" },
+  sat: { enabled: false, startTime: "09:00", endTime: "14:00" },
+  sun: { enabled: false, startTime: "09:00", endTime: "14:00" },
+};
 
 export interface ContractorSettings {
   businessName: string;
@@ -62,6 +102,8 @@ export interface ContractorSettings {
   stripeAccountId?: string;
   stripeOnboarded?: boolean;
   onboardingComplete?: boolean;
+  weeklySchedule?: WeeklySchedule;
+  blockedDates?: BlockedDate[];
 }
 
 export interface QuoteTotals {
@@ -95,6 +137,10 @@ interface QuoteContextType {
   addPhoto: (quoteId: string, uri: string) => void;
   removePhoto: (quoteId: string, uri: string) => void;
   updateSettings: (data: Partial<ContractorSettings>) => void;
+  addBlockedDate: (date: string, reason?: string) => void;
+  removeBlockedDate: (id: string) => void;
+  getAvailableSlots: (date: string) => string[];
+  isDateAvailable: (date: string) => boolean;
   calculateTotals: (items: LineItem[], markupPct?: number, discountAmt?: number, discountType?: "percent" | "flat", taxRate?: number) => QuoteTotals;
   getCustomers: () => Customer[];
 }
@@ -311,6 +357,72 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     [settings, saveSettings]
   );
 
+  const addBlockedDate = useCallback(
+    (date: string, reason?: string) => {
+      const existing = settings.blockedDates ?? [];
+      if (existing.some((b) => b.date === date)) return;
+      const updated = {
+        ...settings,
+        blockedDates: [...existing, { id: generateId(), date, reason }],
+      };
+      setSettings(updated);
+      saveSettings(updated);
+    },
+    [settings, saveSettings]
+  );
+
+  const removeBlockedDate = useCallback(
+    (id: string) => {
+      const updated = {
+        ...settings,
+        blockedDates: (settings.blockedDates ?? []).filter((b) => b.id !== id),
+      };
+      setSettings(updated);
+      saveSettings(updated);
+    },
+    [settings, saveSettings]
+  );
+
+  const getDayOfWeek = useCallback((dateStr: string): DayOfWeek => {
+    const d = new Date(dateStr + "T12:00:00");
+    const dayIndex = d.getDay();
+    const map: DayOfWeek[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    return map[dayIndex];
+  }, []);
+
+  const isDateAvailable = useCallback(
+    (dateStr: string): boolean => {
+      const schedule = settings.weeklySchedule ?? DEFAULT_WEEKLY_SCHEDULE;
+      const dayKey = getDayOfWeek(dateStr);
+      if (!schedule[dayKey]?.enabled) return false;
+      const blocked = settings.blockedDates ?? [];
+      if (blocked.some((b) => b.date === dateStr)) return false;
+      return true;
+    },
+    [settings.weeklySchedule, settings.blockedDates, getDayOfWeek]
+  );
+
+  const getAvailableSlots = useCallback(
+    (dateStr: string): string[] => {
+      if (!isDateAvailable(dateStr)) return [];
+      const schedule = settings.weeklySchedule ?? DEFAULT_WEEKLY_SCHEDULE;
+      const dayKey = getDayOfWeek(dateStr);
+      const day = schedule[dayKey];
+      if (!day?.enabled) return [];
+
+      const startHour = parseInt(day.startTime.split(":")[0], 10);
+      const endHour = parseInt(day.endTime.split(":")[0], 10);
+      const slots: string[] = [];
+      for (let h = startHour; h < endHour; h++) {
+        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        const ampm = h < 12 ? "AM" : "PM";
+        slots.push(`${hour12}:00 ${ampm}`);
+      }
+      return slots;
+    },
+    [isDateAvailable, settings.weeklySchedule, getDayOfWeek]
+  );
+
   const calculateTotals = useCallback(
     (
       items: LineItem[],
@@ -419,6 +531,10 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         addPhoto,
         removePhoto,
         updateSettings,
+        addBlockedDate,
+        removeBlockedDate,
+        getAvailableSlots,
+        isDateAvailable,
         calculateTotals,
         getCustomers,
       }}

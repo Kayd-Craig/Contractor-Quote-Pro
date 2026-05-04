@@ -20,8 +20,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
+import { ScheduleManager } from "@/components/ScheduleManager";
 import type { ContractorSettings, PreferredStore, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
-import { useQuotes } from "@/context/QuoteContext";
+import { useQuotes, DEFAULT_WEEKLY_SCHEDULE, DAYS_ORDER, DAY_LABELS } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 import { useConnectOnboard, getConnectDashboard, useGetConnectBalance, useGetConnectStatus } from "@workspace/api-client-react";
 
@@ -33,6 +34,7 @@ export default function SettingsScreen() {
   const [form, setForm] = useState<ContractorSettings>(settings);
   const [saved, setSaved] = useState(false);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
@@ -51,7 +53,25 @@ export default function SettingsScreen() {
   );
 
   useEffect(() => {
-    setForm(settings);
+    setForm((prev) => {
+      const scheduleOnly =
+        prev.name === settings.name &&
+        prev.phone === settings.phone &&
+        prev.email === settings.email &&
+        prev.businessName === settings.businessName &&
+        prev.licenseNumber === settings.licenseNumber &&
+        prev.zipCode === settings.zipCode &&
+        prev.defaultMarkup === settings.defaultMarkup &&
+        prev.contractorDiscount === settings.contractorDiscount &&
+        prev.preferredStore === settings.preferredStore &&
+        prev.quoteTemplate === settings.quoteTemplate &&
+        prev.quoteFont === settings.quoteFont &&
+        prev.logo === settings.logo;
+      if (scheduleOnly) {
+        return { ...prev, weeklySchedule: settings.weeklySchedule, blockedDates: settings.blockedDates };
+      }
+      return settings;
+    });
   }, [settings]);
 
   const handleConnectStripe = useCallback(async () => {
@@ -344,6 +364,38 @@ export default function SettingsScreen() {
             Your zip code is used in the Materials tab to show hardware stores near you.
           </Text>
         </View>
+
+        {/* Availability Schedule */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          AVAILABILITY SCHEDULE
+        </Text>
+        <TouchableOpacity
+          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => setShowSchedule(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.scheduleRow}>
+            <View style={[styles.scheduleIcon, { backgroundColor: colors.primary + "18" }]}>
+              <Feather name="calendar" size={20} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.scheduleTitle, { color: colors.foreground }]}>
+                Working Hours & Days Off
+              </Text>
+              <Text style={[styles.scheduleSub, { color: colors.mutedForeground }]}>
+                {(() => {
+                  const schedule = settings.weeklySchedule ?? DEFAULT_WEEKLY_SCHEDULE;
+                  const activeDays = DAYS_ORDER.filter((d) => schedule[d].enabled);
+                  if (activeDays.length === 0) return "No working days set";
+                  const dayLabels = activeDays.map((d) => DAY_LABELS[d].slice(0, 3));
+                  const blocked = settings.blockedDates?.length ?? 0;
+                  return `${dayLabels.join(", ")}${blocked > 0 ? ` · ${blocked} blocked` : ""}`;
+                })()}
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+          </View>
+        </TouchableOpacity>
 
         {/* Preferred Store */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
@@ -782,6 +834,9 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Schedule Manager */}
+      <ScheduleManager visible={showSchedule} onClose={() => setShowSchedule(false)} />
 
       {/* Logo picker bottom sheet */}
       <Modal
@@ -1316,5 +1371,27 @@ const styles = StyleSheet.create({
   balanceValue: {
     fontSize: 20,
     fontFamily: "Inter_700Bold",
+  },
+  scheduleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 14,
+  },
+  scheduleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scheduleTitle: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
+  scheduleSub: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
   },
 });

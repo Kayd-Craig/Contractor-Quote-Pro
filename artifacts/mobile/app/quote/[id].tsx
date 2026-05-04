@@ -23,6 +23,7 @@ import { FONT_OPTIONS, PaperQuoteView, TEMPLATE_OPTIONS } from "@/components/Pap
 import { PhotosSection } from "@/components/PhotosSection";
 import type { Product } from "@/components/ProductCard";
 import { ProductCard } from "@/components/ProductCard";
+import { SchedulePicker } from "@/components/SchedulePicker";
 import { SendQuoteModal } from "@/components/SendQuoteModal";
 import type { LineItem, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
@@ -53,6 +54,7 @@ export default function QuoteDetailScreen() {
   const [discountTypeLocal, setDiscountTypeLocal] = useState<"percent" | "flat">("percent");
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
   const { mutateAsync: createPaymentApi } = useCreatePayment();
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
@@ -586,6 +588,49 @@ export default function QuoteDetailScreen() {
           </Text>
         </TouchableOpacity>
 
+        {/* Scheduling Section */}
+        {quote.status === "accepted" && (
+          <View style={{ marginTop: 12 }}>
+            {quote.scheduledDate && quote.scheduledTimeSlot ? (
+              <View style={[styles.scheduleBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+                <View style={[styles.scheduleIconCircle, { backgroundColor: colors.primary }]}>
+                  <Feather name="calendar" size={18} color="#fff" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.scheduleBannerTitle, { color: colors.primary }]}>Job Scheduled</Text>
+                  <Text style={[styles.scheduleBannerDate, { color: colors.foreground }]}>
+                    {new Date(quote.scheduledDate + "T12:00:00").toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </Text>
+                  <Text style={[styles.scheduleBannerTime, { color: colors.mutedForeground }]}>
+                    {quote.scheduledTimeSlot}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.scheduleEditBtn, { borderColor: colors.primary + "40" }]}
+                  onPress={() => setShowScheduler(true)}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="edit-2" size={14} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.scheduleRequestBtn, { backgroundColor: colors.accent }]}
+                onPress={() => setShowScheduler(true)}
+                activeOpacity={0.85}
+              >
+                <Feather name="calendar" size={20} color="#fff" />
+                <Text style={styles.scheduleRequestText}>Schedule This Job</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Payment Section */}
         {(quote.status === "sent" || quote.status === "accepted") && totals.total > 0 && (
           <View style={{ marginTop: 12 }}>
@@ -724,6 +769,18 @@ export default function QuoteDetailScreen() {
           </TouchableOpacity>
         </Modal>
       )}
+
+      {/* Schedule picker */}
+      <SchedulePicker
+        visible={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        onSchedule={(date, timeSlot) => {
+          updateQuote(quote.id, { scheduledDate: date, scheduledTimeSlot: timeSlot });
+          setShowScheduler(false);
+        }}
+        currentDate={quote.scheduledDate}
+        currentSlot={quote.scheduledTimeSlot}
+      />
 
       {/* Send modal */}
       <SendQuoteModal
@@ -2027,5 +2084,57 @@ const styles = StyleSheet.create({
   },
   fontChipTextActive: {
     color: "#2E7D32",
+  },
+  scheduleBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  scheduleIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scheduleBannerTitle: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  scheduleBannerDate: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
+  scheduleBannerTime: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    marginTop: 1,
+  },
+  scheduleEditBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scheduleRequestBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  scheduleRequestText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
   },
 });

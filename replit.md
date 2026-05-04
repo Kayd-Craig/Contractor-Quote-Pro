@@ -86,12 +86,24 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - **Prerequisite**: Stripe Connect must be enabled on the platform Stripe account at https://dashboard.stripe.com/connect
 - Dependencies: `stripe`, `stripe-replit-sync` (externalized in esbuild config)
 
+### Scheduling System
+- Contractors set weekly availability (working days + hours) and block out specific dates in Settings → "Working Hours & Days Off"
+- Default: Mon–Fri 8 AM–5 PM, Sat/Sun off
+- When a quote is accepted, a "Schedule This Job" button appears on the quote detail page
+- SchedulePicker shows available dates (skipping blocked/off days) and time slots from contractor hours
+- Scheduled date + time slot stored on the Quote object (`scheduledDate`, `scheduledTimeSlot`)
+- Already-scheduled jobs show a banner with date/time and an edit button
+- Components: `ScheduleManager.tsx` (availability CRUD modal), `SchedulePicker.tsx` (job booking modal)
+- Types: `WeeklySchedule`, `DaySchedule`, `BlockedDate`, `DayOfWeek` in QuoteContext
+
 ### Important Files
 - `artifacts/mobile/context/QuoteContext.tsx` — all state, types, AsyncStorage persistence
 - `artifacts/mobile/components/PaperQuoteView.tsx` — themed paper quote with font/template support
-- `artifacts/mobile/app/quote/[id].tsx` — quote detail, add items, preview modal with style pickers, payment UI
+- `artifacts/mobile/components/ScheduleManager.tsx` — contractor availability management (weekly hours + blocked dates)
+- `artifacts/mobile/components/SchedulePicker.tsx` — job scheduling date/time picker for accepted quotes
+- `artifacts/mobile/app/quote/[id].tsx` — quote detail, add items, preview modal with style pickers, payment UI, scheduling
 - `artifacts/mobile/components/SendQuoteModal.tsx` — send flow with paper preview
-- `artifacts/mobile/app/(tabs)/settings.tsx` — contractor profile, logo upload, markup/discount defaults
+- `artifacts/mobile/app/(tabs)/settings.tsx` — contractor profile, logo upload, markup/discount defaults, schedule access
 - `artifacts/api-server/src/routes/products.ts` — mock product catalog
 - `artifacts/api-server/src/routes/payments.ts` — Stripe checkout session creation + payment status
 - `artifacts/api-server/src/stripeClient.ts` — Stripe client + StripeSync via Replit connectors
