@@ -41,6 +41,8 @@ export interface Quote {
   updatedAt: string;
 }
 
+export type PreferredStore = "all" | "homedepot" | "lowes";
+
 export interface ContractorSettings {
   businessName: string;
   name: string;
@@ -53,6 +55,7 @@ export interface ContractorSettings {
   logoUri?: string;
   defaultQuoteFont?: QuoteFont;
   defaultQuoteTemplate?: QuoteTemplate;
+  preferredStore?: PreferredStore;
 }
 
 export interface QuoteTotals {

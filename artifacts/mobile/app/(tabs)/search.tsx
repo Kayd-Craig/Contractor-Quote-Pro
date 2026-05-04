@@ -30,7 +30,7 @@ export default function SearchScreen() {
   const [tab, setTab] = useState<TabMode>("stores");
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
-  const [store, setStore] = useState<StoreFilter>("all");
+  const [store, setStore] = useState<StoreFilter>((settings.preferredStore as StoreFilter) || "all");
   const inputRef = useRef<TextInput>(null);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;

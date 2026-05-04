@@ -790,9 +790,10 @@ function AddItemModal({
     return () => clearTimeout(t);
   }, [searchQuery]);
 
+  const storeFilter = (settings.preferredStore || "all") as "homedepot" | "lowes" | "all";
   const { data: searchData, isFetching } = useSearchProducts(
-    { q: debouncedQuery },
-    { query: { enabled: isMaterial && debouncedQuery.length >= 2 } }
+    { q: debouncedQuery, store: storeFilter },
+    { query: { enabled: isMaterial && debouncedQuery.length >= 2, queryKey: ["products", debouncedQuery, storeFilter] } }
   );
 
   function handleSelectProduct(p: Product) {

@@ -17,7 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
-import type { ContractorSettings, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
+import type { ContractorSettings, PreferredStore, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -227,6 +227,56 @@ export default function SettingsScreen() {
           <Feather name="map-pin" size={13} color={colors.mutedForeground} />
           <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
             Your zip code is used in the Materials tab to show hardware stores near you.
+          </Text>
+        </View>
+
+        {/* Preferred Store */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          PREFERRED STORE
+        </Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.styleSection}>
+            <View style={styles.styleSectionHeader}>
+              <Feather name="shopping-bag" size={16} color={colors.primary} />
+              <View>
+                <Text style={[styles.markupLabel, { color: colors.foreground }]}>Quote From</Text>
+                <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>Which store to search products from</Text>
+              </View>
+            </View>
+            <View style={styles.styleChipRow}>
+              {([
+                { key: "all" as PreferredStore, label: "All Stores", icon: "grid" as const, color: colors.accent },
+                { key: "homedepot" as PreferredStore, label: "Home Depot", icon: "home" as const, color: colors.homedepot },
+                { key: "lowes" as PreferredStore, label: "Lowe's", icon: "tool" as const, color: colors.lowes },
+              ]).map((opt) => {
+                const active = (form.preferredStore || "all") === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[
+                      styles.styleChip,
+                      {
+                        borderColor: active ? opt.color : colors.border,
+                        backgroundColor: active ? opt.color + "18" : colors.secondary,
+                      },
+                    ]}
+                    onPress={() => setForm((f) => ({ ...f, preferredStore: opt.key }))}
+                    activeOpacity={0.8}
+                  >
+                    <Feather name={opt.icon} size={18} color={active ? opt.color : colors.mutedForeground} />
+                    <Text style={[styles.styleChipLabel, { color: active ? opt.color : colors.foreground }]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+        <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="info" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
+            Choose "All Stores" to see products from both Home Depot and Lowe's, or pick one to only show products from that store.
           </Text>
         </View>
 
