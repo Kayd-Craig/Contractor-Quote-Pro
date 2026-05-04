@@ -766,6 +766,7 @@ function AddItemModal({
 }) {
   const isMaterial = mode === "material";
 
+  const [entryMode, setEntryMode] = useState<"search" | "manual">("search");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -775,6 +776,7 @@ function AddItemModal({
   const [unit, setUnit] = useState(isMaterial ? "each" : "hr");
   const [unitPrice, setUnitPrice] = useState("");
   const [markup, setMarkup] = useState(defaultMarkup.toString());
+  const [customSupplier, setCustomSupplier] = useState("");
 
   const LABOR_UNITS = [
     { label: "per Hour", value: "hr" },
@@ -830,7 +832,7 @@ function AddItemModal({
         unit: unit.trim() || "each",
         unitPrice: price,
         markupPercent: isNaN(mkup) ? defaultMarkup : mkup,
-        store: selectedProduct?.store ?? null,
+        store: selectedProduct?.store ?? (customSupplier.trim() || null),
         sku: selectedProduct?.sku ?? null,
       });
     } else if (unit === "flat") {
@@ -893,63 +895,110 @@ function AddItemModal({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.modalScroll}
           >
-            {/* Material search */}
+            {/* Material entry mode tabs */}
             {isMaterial && (
               <View style={styles.searchSection}>
-                <Text style={[styles.modalSectionLabel, { color: colors.mutedForeground }]}>
-                  SEARCH STORES
-                </Text>
-                <View
-                  style={[
-                    styles.modalSearchBar,
-                    { backgroundColor: colors.background, borderColor: colors.border },
-                  ]}
-                >
-                  {isFetching
-                    ? <ActivityIndicator size="small" color={colors.primary} style={{ width: 15 }} />
-                    : <Feather name="search" size={15} color={colors.mutedForeground} />
-                  }
-                  <TextInput
-                    style={[styles.modalSearchInput, { color: colors.foreground }]}
-                    placeholder="mulch, lumber, pavers, seed..."
-                    placeholderTextColor={colors.mutedForeground}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    returnKeyType="search"
-                    autoCapitalize="none"
-                  />
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => { setSearchQuery(""); setDebouncedQuery(""); }}>
-                      <Feather name="x" size={15} color={colors.mutedForeground} />
-                    </TouchableOpacity>
-                  )}
+                <View style={[styles.entryModeTabs, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <TouchableOpacity
+                    style={[
+                      styles.entryModeTab,
+                      entryMode === "search" && { backgroundColor: colors.primary },
+                    ]}
+                    onPress={() => { setEntryMode("search"); setCustomSupplier(""); }}
+                  >
+                    <Feather name="search" size={14} color={entryMode === "search" ? colors.primaryForeground : colors.mutedForeground} />
+                    <Text style={[styles.entryModeTabText, { color: entryMode === "search" ? colors.primaryForeground : colors.foreground }]}>
+                      Search Catalog
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.entryModeTab,
+                      entryMode === "manual" && { backgroundColor: colors.primary },
+                    ]}
+                    onPress={() => { setEntryMode("manual"); setSelectedProduct(null); setSearchQuery(""); setDebouncedQuery(""); }}
+                  >
+                    <Feather name="edit-3" size={14} color={entryMode === "manual" ? colors.primaryForeground : colors.mutedForeground} />
+                    <Text style={[styles.entryModeTabText, { color: entryMode === "manual" ? colors.primaryForeground : colors.foreground }]}>
+                      Manual Entry
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
-                {!isFetching && searchData && searchData.products.length > 0 && (
-                  <View style={{ maxHeight: 220 }}>
-                    <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false}>
-                      {searchData.products.slice(0, 8).map((p) => (
-                        <ProductCard
-                          key={p.id}
-                          product={p as Product}
-                          compact
-                          contractorDiscount={contractorDiscount}
-                          onAdd={handleSelectProduct}
-                        />
-                      ))}
-                    </ScrollView>
-                  </View>
+                {entryMode === "search" && (
+                  <>
+                    <View
+                      style={[
+                        styles.modalSearchBar,
+                        { backgroundColor: colors.background, borderColor: colors.border },
+                      ]}
+                    >
+                      {isFetching
+                        ? <ActivityIndicator size="small" color={colors.primary} style={{ width: 15 }} />
+                        : <Feather name="search" size={15} color={colors.mutedForeground} />
+                      }
+                      <TextInput
+                        style={[styles.modalSearchInput, { color: colors.foreground }]}
+                        placeholder="mulch, lumber, pavers, seed..."
+                        placeholderTextColor={colors.mutedForeground}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        returnKeyType="search"
+                        autoCapitalize="none"
+                      />
+                      {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => { setSearchQuery(""); setDebouncedQuery(""); }}>
+                          <Feather name="x" size={15} color={colors.mutedForeground} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {!isFetching && searchData && searchData.products.length > 0 && (
+                      <View style={{ maxHeight: 220 }}>
+                        <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                          {searchData.products.slice(0, 8).map((p) => (
+                            <ProductCard
+                              key={p.id}
+                              product={p as Product}
+                              compact
+                              contractorDiscount={contractorDiscount}
+                              onAdd={handleSelectProduct}
+                            />
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+
+                    {selectedProduct && (
+                      <View style={[styles.selectedTag, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}>
+                        <Feather name="check-circle" size={14} color={colors.primary} />
+                        <Text style={[styles.selectedTagText, { color: colors.primary }]} numberOfLines={1}>
+                          {selectedProduct.name}
+                        </Text>
+                        <TouchableOpacity onPress={() => { setSelectedProduct(null); setDescription(""); setUnitPrice(""); }}>
+                          <Feather name="x" size={13} color={colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </>
                 )}
 
-                {selectedProduct && (
-                  <View style={[styles.selectedTag, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}>
-                    <Feather name="check-circle" size={14} color={colors.primary} />
-                    <Text style={[styles.selectedTagText, { color: colors.primary }]} numberOfLines={1}>
-                      {selectedProduct.name}
-                    </Text>
-                    <TouchableOpacity onPress={() => { setSelectedProduct(null); setDescription(""); setUnitPrice(""); }}>
-                      <Feather name="x" size={13} color={colors.primary} />
-                    </TouchableOpacity>
+                {entryMode === "manual" && (
+                  <View style={[styles.supplierField, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Feather name="truck" size={15} color={colors.mutedForeground} />
+                    <TextInput
+                      style={[styles.modalSearchInput, { color: colors.foreground }]}
+                      placeholder="Supplier name (optional)"
+                      placeholderTextColor={colors.mutedForeground}
+                      value={customSupplier}
+                      onChangeText={setCustomSupplier}
+                      autoCapitalize="words"
+                    />
+                    {customSupplier.length > 0 && (
+                      <TouchableOpacity onPress={() => setCustomSupplier("")}>
+                        <Feather name="x" size={15} color={colors.mutedForeground} />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               </View>
@@ -990,7 +1039,7 @@ function AddItemModal({
 
             {/* Form fields */}
             <Text style={[styles.modalSectionLabel, { color: colors.mutedForeground }]}>
-              {isMaterial ? "OR ENTER MANUALLY" : "LABOR DETAILS"}
+              {isMaterial ? (entryMode === "manual" ? "ITEM DETAILS" : "OR ENTER MANUALLY") : "LABOR DETAILS"}
             </Text>
 
             <View style={[styles.formCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -1514,6 +1563,33 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold" },
   modalScroll: { gap: 12, paddingBottom: 8 },
   searchSection: { gap: 8 },
+  entryModeTabs: {
+    flexDirection: "row",
+    borderRadius: 10,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  entryModeTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+  },
+  entryModeTabText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+  },
+  supplierField: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    gap: 8,
+  },
   modalSectionLabel: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",

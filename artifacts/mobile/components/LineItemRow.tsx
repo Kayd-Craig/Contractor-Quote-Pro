@@ -23,17 +23,22 @@ export function LineItemRow({ item, onDelete }: Props) {
   const total = baseTotal + markupAmt;
 
   const isMaterial = item.type === "material";
+  const isKnownStore = item.store === "homedepot" || item.store === "lowes";
   const storeColor =
     item.store === "homedepot"
       ? colors.homedepot
       : item.store === "lowes"
       ? colors.lowes
+      : item.store
+      ? colors.mutedForeground
       : null;
   const storeName =
     item.store === "homedepot"
       ? "HD"
       : item.store === "lowes"
       ? "LWS"
+      : item.store
+      ? item.store.length > 12 ? item.store.slice(0, 11) + "…" : item.store
       : null;
 
   return (
@@ -57,8 +62,13 @@ export function LineItemRow({ item, onDelete }: Props) {
             {item.description}
           </Text>
           {storeName && storeColor && (
-            <View style={[styles.storeTag, { backgroundColor: storeColor }]}>
-              <Text style={styles.storeTagText}>{storeName}</Text>
+            <View style={[
+              styles.storeTag,
+              isKnownStore
+                ? { backgroundColor: storeColor }
+                : { backgroundColor: storeColor + "18", borderWidth: 1, borderColor: storeColor + "40" },
+            ]}>
+              <Text style={[styles.storeTagText, !isKnownStore && { color: storeColor }]}>{storeName}</Text>
             </View>
           )}
         </View>
