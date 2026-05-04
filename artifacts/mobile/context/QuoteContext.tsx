@@ -86,7 +86,7 @@ interface QuoteContextType {
   addPhoto: (quoteId: string, uri: string) => void;
   removePhoto: (quoteId: string, uri: string) => void;
   updateSettings: (data: Partial<ContractorSettings>) => void;
-  calculateTotals: (items: LineItem[], defaultMarkup?: number) => QuoteTotals;
+  calculateTotals: (items: LineItem[], markupPct?: number, discountAmt?: number, discountType?: "percent" | "flat") => QuoteTotals;
   getCustomers: () => Customer[];
 }
 
