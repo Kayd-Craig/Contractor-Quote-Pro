@@ -27,6 +27,7 @@ export interface Quote {
   jobAddress?: string;
   jobDescription: string;
   lineItems: LineItem[];
+  photos: string[];
   status: "draft" | "sent" | "accepted" | "declined";
   createdAt: string;
   updatedAt: string;
@@ -63,6 +64,8 @@ interface QuoteContextType {
   addLineItem: (quoteId: string, item: Omit<LineItem, "id">) => void;
   updateLineItem: (quoteId: string, itemId: string, data: Partial<LineItem>) => void;
   deleteLineItem: (quoteId: string, itemId: string) => void;
+  addPhoto: (quoteId: string, uri: string) => void;
+  removePhoto: (quoteId: string, uri: string) => void;
   updateSettings: (data: Partial<ContractorSettings>) => void;
   calculateTotals: (items: LineItem[], defaultMarkup?: number) => QuoteTotals;
 }
@@ -135,6 +138,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         id: generateId(),
         ...data,
         lineItems: [],
+        photos: [],
         status: "draft",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -221,6 +225,40 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     [quotes, saveQuotes]
   );
 
+  const addPhoto = useCallback(
+    (quoteId: string, uri: string) => {
+      const updated = quotes.map((q) =>
+        q.id === quoteId
+          ? {
+              ...q,
+              photos: [...(q.photos ?? []), uri],
+              updatedAt: new Date().toISOString(),
+            }
+          : q
+      );
+      setQuotes(updated);
+      saveQuotes(updated);
+    },
+    [quotes, saveQuotes]
+  );
+
+  const removePhoto = useCallback(
+    (quoteId: string, uri: string) => {
+      const updated = quotes.map((q) =>
+        q.id === quoteId
+          ? {
+              ...q,
+              photos: (q.photos ?? []).filter((p) => p !== uri),
+              updatedAt: new Date().toISOString(),
+            }
+          : q
+      );
+      setQuotes(updated);
+      saveQuotes(updated);
+    },
+    [quotes, saveQuotes]
+  );
+
   const updateSettings = useCallback(
     (data: Partial<ContractorSettings>) => {
       const updated = { ...settings, ...data };
@@ -267,6 +305,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         addLineItem,
         updateLineItem,
         deleteLineItem,
+        addPhoto,
+        removePhoto,
         updateSettings,
         calculateTotals,
       }}

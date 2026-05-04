@@ -14,9 +14,19 @@
       "backgroundColor": "#1A1A2E"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Quick Quote uses your camera to take job-site photos that can be attached to quotes.",
+        "NSPhotoLibraryUsageDescription": "Quick Quote accesses your photo library to attach job-site photos to quotes."
+      }
     },
-    "android": {},
+    "android": {
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },

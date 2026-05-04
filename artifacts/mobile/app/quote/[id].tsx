@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LineItemRow } from "@/components/LineItemRow";
+import { PhotosSection } from "@/components/PhotosSection";
 import type { Product } from "@/components/ProductCard";
 import { ProductCard } from "@/components/ProductCard";
 import { SendQuoteModal } from "@/components/SendQuoteModal";
@@ -31,7 +32,7 @@ export default function QuoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { quotes, settings, deleteLineItem, addLineItem, updateQuote, calculateTotals } =
+  const { quotes, settings, deleteLineItem, addLineItem, addPhoto, removePhoto, updateQuote, calculateTotals } =
     useQuotes();
 
   const quote = quotes.find((q) => q.id === id);
@@ -213,6 +214,14 @@ export default function QuoteDetailScreen() {
         ) : (
           <EmptySection label="No labor added" icon="clock" colors={colors} />
         )}
+
+        {/* Photos */}
+        <PhotosSection
+          quoteId={quote.id}
+          photos={quote.photos ?? []}
+          onAdd={(uri) => addPhoto(quote.id, uri)}
+          onRemove={(uri) => removePhoto(quote.id, uri)}
+        />
 
         {/* Summary */}
         <View style={[styles.summary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
