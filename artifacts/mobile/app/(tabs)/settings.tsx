@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as WebBrowser from "expo-web-browser";
@@ -120,6 +121,35 @@ export default function SettingsScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom > 0 ? insets.bottom : 16;
 
+  async function convertToDataUri(uri: string): Promise<string> {
+    if (uri.startsWith("data:")) return uri;
+
+    if (Platform.OS === "web") {
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return uri;
+      }
+    }
+
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const ext = uri.toLowerCase().includes(".png") ? "png" : "jpeg";
+      return `data:image/${ext};base64,${base64}`;
+    } catch {
+      return uri;
+    }
+  }
+
   async function handleCamera() {
     setShowLogoPicker(false);
     const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -134,7 +164,8 @@ export default function SettingsScreen() {
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
-      setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+      const dataUri = await convertToDataUri(result.assets[0].uri);
+      setForm((f) => ({ ...f, logoUri: dataUri }));
     }
   }
 
@@ -152,7 +183,8 @@ export default function SettingsScreen() {
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
-      setForm((f) => ({ ...f, logoUri: result.assets[0].uri }));
+      const dataUri = await convertToDataUri(result.assets[0].uri);
+      setForm((f) => ({ ...f, logoUri: dataUri }));
     }
   }
 

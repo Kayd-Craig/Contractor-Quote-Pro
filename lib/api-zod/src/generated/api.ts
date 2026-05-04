@@ -166,6 +166,10 @@ export const SendQuoteBody = zod.object({
   contractorPhone: zod.string().nullish(),
   contractorEmail: zod.string().nullish(),
   contractorLicense: zod.string().nullish(),
+  logoBase64: zod
+    .string()
+    .nullish()
+    .describe("Base64-encoded logo image (data URI or raw base64)"),
   lineItems: zod.array(
     zod.object({
       id: zod.string(),

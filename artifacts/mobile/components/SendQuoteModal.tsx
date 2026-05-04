@@ -70,6 +70,7 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           contractorPhone: settings.phone,
           contractorEmail: settings.email,
           contractorLicense: settings.license || undefined,
+          logoBase64: settings.logoUri || undefined,
           lineItems: quote.lineItems.map((item) => ({
             id: item.id,
             type: item.type,

@@ -461,6 +461,10 @@ components:
         contractorLicense:
           type: string
           nullable: true
+        logoBase64:
+          type: string
+          nullable: true
+          description: Base64-encoded logo image (data URI or raw base64)
         lineItems:
           type: array
           items:

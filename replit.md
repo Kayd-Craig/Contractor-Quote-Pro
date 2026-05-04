@@ -43,7 +43,8 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - Send quotes as **PDF** via native share sheet (generated server-side with pdfkit, matching template/font styles)
 - Web fallback: PDF auto-downloads via blob URL
 - Quote deletion (long-press from list, trash icon from detail)
-- Business logo upload (bottom sheet picker, works on web + native)
+- Business logo upload (bottom sheet picker, works on web + native) — converted to base64 data URI for persistence across reloads
+- Logo rendered in PDF quotes (centered above business name in header)
 
 ### Quote Data Model
 - `QuoteFont`: "classic" | "modern" | "elegant" | "clean"

@@ -148,6 +148,7 @@ router.post("/quotes/send", async (req: Request, res: Response) => {
       contractorPhone: body.contractorPhone,
       contractorEmail: body.contractorEmail,
       contractorLicense: body.contractorLicense,
+      logoBase64: body.logoBase64 || null,
       lineItems: body.lineItems,
       materialSubtotal: body.materialSubtotal,
       laborSubtotal: body.laborSubtotal,

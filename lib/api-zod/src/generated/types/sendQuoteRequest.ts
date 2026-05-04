@@ -22,6 +22,8 @@ export interface SendQuoteRequest {
   contractorPhone?: string | null;
   contractorEmail?: string | null;
   contractorLicense?: string | null;
+  /** Base64-encoded logo image (data URI or raw base64) */
+  logoBase64?: string | null;
   lineItems: QuoteLineItem[];
   materialSubtotal: number;
   laborSubtotal: number;

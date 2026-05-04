@@ -105,6 +105,7 @@ export interface QuotePdfInput {
   contractorPhone?: string | null;
   contractorEmail?: string | null;
   contractorLicense?: string | null;
+  logoBase64?: string | null;
   lineItems: LineItem[];
   materialSubtotal: number;
   laborSubtotal: number;
@@ -154,9 +155,39 @@ export function generateQuotePdf(input: QuotePdfInput): Promise<Buffer> {
     const materialCharge = input.materialSubtotal + input.markupAmount * materialFraction;
     const laborCharge = input.laborSubtotal + input.markupAmount * laborFraction;
 
+    let logoBuffer: Buffer | null = null;
+    if (input.logoBase64) {
+      try {
+        let raw = input.logoBase64;
+        if (raw.startsWith("data:")) {
+          raw = raw.split(",")[1] || "";
+        }
+        logoBuffer = Buffer.from(raw, "base64");
+      } catch {
+        logoBuffer = null;
+      }
+    }
+
+    const logoHeight = 40;
+    const extraHeaderSpace = logoBuffer ? logoHeight + 10 : 0;
+
     if (t.headerBg) {
-      doc.rect(0, 0, doc.page.width, 130).fill(t.headerBg);
+      doc.rect(0, 0, doc.page.width, 130 + extraHeaderSpace).fill(t.headerBg);
       y = 35;
+
+      if (logoBuffer) {
+        try {
+          doc.image(logoBuffer, (doc.page.width - logoHeight) / 2, y, {
+            width: logoHeight,
+            height: logoHeight,
+            fit: [logoHeight, logoHeight],
+          });
+          y += logoHeight + 8;
+        } catch {
+          // skip logo if it can't be rendered
+        }
+      }
+
       doc.font(fontBold).fontSize(18).fillColor(t.headerText);
       doc.text((input.businessName || "CONTRACTOR QUOTE").toUpperCase(), leftX, y, {
         width: pageWidth,
@@ -179,8 +210,21 @@ export function generateQuotePdf(input: QuotePdfInput): Promise<Buffer> {
         doc.text(`Lic# ${input.contractorLicense}`, leftX, y, { width: pageWidth, align: "center" });
         y += 14;
       }
-      y = 145;
+      y = 145 + extraHeaderSpace;
     } else {
+      if (logoBuffer) {
+        try {
+          doc.image(logoBuffer, (doc.page.width - logoHeight) / 2, y, {
+            width: logoHeight,
+            height: logoHeight,
+            fit: [logoHeight, logoHeight],
+          });
+          y += logoHeight + 8;
+        } catch {
+          // skip logo if it can't be rendered
+        }
+      }
+
       doc.font(fontBold).fontSize(16).fillColor(t.headerText);
       doc.text((input.businessName || "CONTRACTOR QUOTE").toUpperCase(), leftX, y, {
         width: pageWidth,
