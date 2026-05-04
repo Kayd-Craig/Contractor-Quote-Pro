@@ -48,9 +48,19 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - Font/template stored on each Quote object (`quoteFont`, `quoteTemplate` fields)
 
 ### Colors
-- Primary orange: `#E87722`
+- Primary green: `#2E7D32`
 - Dark navy: `#1A3A5C`
 - Off-white: `#F7F6F4`
+- HD orange: `#F96302`
+- Lowe's blue: `#004990`
+
+### App Store / Production
+- Bundle ID: `com.joshworks.quickquote`
+- EAS config: `artifacts/mobile/eas.json`
+- App icon: `artifacts/mobile/assets/images/icon.png` (green QQ)
+- Splash: `artifacts/mobile/assets/images/splash.png` (green QQ on cream)
+- Adaptive icon: `artifacts/mobile/assets/images/adaptive-icon.png`
+- Preferred store filter: "all" | "homedepot" | "lowes" (saved in settings)
 
 ### Important Files
 - `artifacts/mobile/context/QuoteContext.tsx` — all state, types, AsyncStorage persistence
