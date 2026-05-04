@@ -49,19 +49,16 @@ export default function NewQuoteScreen() {
       Alert.alert("Required", "Please enter the customer name.");
       return;
     }
-    if (!jobDescription.trim()) {
-      Alert.alert("Required", "Please describe the job.");
-      return;
-    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const quote = createQuote({
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim() || undefined,
       customerEmail: customerEmail.trim() || undefined,
       jobAddress: jobAddress.trim() || undefined,
-      jobDescription: jobDescription.trim(),
+      jobDescription: jobDescription.trim() || "Job quote",
     });
-    router.replace(`/quote/${quote.id}`);
+    router.back();
+    setTimeout(() => router.push(`/quote/${quote.id}`), 50);
   }
 
   function handleSelectCustomer(customer: Customer) {
@@ -299,7 +296,7 @@ export default function NewQuoteScreen() {
             <View style={styles.descLabelRow}>
               <Feather name="briefcase" size={15} color={colors.mutedForeground} />
               <Text style={[styles.label, { color: colors.mutedForeground }]}>
-                Job Description *
+                Job Description
               </Text>
             </View>
             <TextInput
