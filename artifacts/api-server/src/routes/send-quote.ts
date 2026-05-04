@@ -33,6 +33,8 @@ function buildQuoteText(body: {
   materialSubtotal: number;
   laborSubtotal: number;
   markupAmount: number;
+  discountAmount?: number | null;
+  discountType?: "percent" | "flat" | null;
   total: number;
 }): string {
   const date = new Date().toLocaleDateString("en-US", {
@@ -113,6 +115,13 @@ function buildQuoteText(body: {
     lines.push(`  Labor:        ${formatCurrency(body.laborSubtotal)}`);
   }
   lines.push(`  Markup:       ${formatCurrency(body.markupAmount)}`);
+  if (body.discountAmount && body.discountAmount > 0) {
+    const discountLabel =
+      body.discountType === "flat"
+        ? `Discount (-${formatCurrency(body.discountAmount)})`
+        : `Discount (-${formatCurrency(body.discountAmount)})`;
+    lines.push(`  ${discountLabel}`);
+  }
   lines.push("  ─────────────────────────────────");
   lines.push(`  TOTAL:        ${formatCurrency(body.total)}`);
   lines.push("═══════════════════════════════════");

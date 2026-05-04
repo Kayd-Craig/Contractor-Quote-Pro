@@ -36,7 +36,12 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
   const [method, setMethod] = useState<SendMethod>("email");
   const { mutateAsync: sendQuoteApi, isPending } = useSendQuote();
 
-  const totals = calculateTotals(quote.lineItems, settings.defaultMarkup);
+  const totals = calculateTotals(
+    quote.lineItems,
+    quote.markupOverride ?? settings.defaultMarkup,
+    quote.discountAmount,
+    quote.discountType
+  );
 
   async function handleSend() {
     try {
@@ -65,6 +70,8 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           materialSubtotal: totals.materialSubtotal,
           laborSubtotal: totals.laborSubtotal,
           markupAmount: totals.markupAmount,
+          discountAmount: totals.discountAmount > 0 ? totals.discountAmount : undefined,
+          discountType: quote.discountType ?? undefined,
           total: totals.total,
           sendMethod: method,
         },

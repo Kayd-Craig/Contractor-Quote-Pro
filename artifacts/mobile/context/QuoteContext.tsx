@@ -29,6 +29,9 @@ export interface Quote {
   lineItems: LineItem[];
   photos: string[];
   status: "draft" | "sent" | "accepted" | "declined";
+  markupOverride?: number;
+  discountAmount?: number;
+  discountType?: "percent" | "flat";
   createdAt: string;
   updatedAt: string;
 }
@@ -46,7 +49,9 @@ export interface ContractorSettings {
 export interface QuoteTotals {
   materialSubtotal: number;
   laborSubtotal: number;
+  markupPercent: number;
   markupAmount: number;
+  discountAmount: number;
   total: number;
 }
 
@@ -285,8 +290,13 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
   );
 
   const calculateTotals = useCallback(
-    (items: LineItem[], defaultMarkup?: number): QuoteTotals => {
-      const markup = defaultMarkup ?? settings.defaultMarkup;
+    (
+      items: LineItem[],
+      markupPct?: number,
+      discountAmt?: number,
+      discountType?: "percent" | "flat"
+    ): QuoteTotals => {
+      const markup = markupPct ?? settings.defaultMarkup;
       let materialBase = 0;
       let laborBase = 0;
 
@@ -296,13 +306,26 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         else laborBase += base;
       }
 
-      const markupAmount = (materialBase + laborBase) * (markup / 100);
-      const total = materialBase + laborBase + markupAmount;
+      const subtotal = materialBase + laborBase;
+      const markupAmount = subtotal * (markup / 100);
+      const afterMarkup = subtotal + markupAmount;
+
+      let discountAmount = 0;
+      if (discountAmt && discountAmt > 0) {
+        discountAmount =
+          discountType === "flat"
+            ? Math.min(discountAmt, afterMarkup)
+            : afterMarkup * (discountAmt / 100);
+      }
+
+      const total = afterMarkup - discountAmount;
 
       return {
         materialSubtotal: materialBase,
         laborSubtotal: laborBase,
+        markupPercent: markup,
         markupAmount,
+        discountAmount,
         total,
       };
     },

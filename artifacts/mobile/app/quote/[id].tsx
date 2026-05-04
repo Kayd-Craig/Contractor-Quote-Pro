@@ -38,6 +38,11 @@ export default function QuoteDetailScreen() {
   const quote = quotes.find((q) => q.id === id);
   const [addMode, setAddMode] = useState<AddMode>(null);
   const [showSend, setShowSend] = useState(false);
+  const [editingMarkup, setEditingMarkup] = useState(false);
+  const [markupInput, setMarkupInput] = useState("");
+  const [showDiscountEditor, setShowDiscountEditor] = useState(false);
+  const [discountInput, setDiscountInput] = useState("");
+  const [discountTypeLocal, setDiscountTypeLocal] = useState<"percent" | "flat">("percent");
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
@@ -54,7 +59,12 @@ export default function QuoteDetailScreen() {
     );
   }
 
-  const totals = calculateTotals(quote.lineItems, settings.defaultMarkup);
+  const totals = calculateTotals(
+    quote.lineItems,
+    quote.markupOverride ?? settings.defaultMarkup,
+    quote.discountAmount,
+    quote.discountType
+  );
   const materials = quote.lineItems.filter((i) => i.type === "material");
   const labor = quote.lineItems.filter((i) => i.type === "labor");
 
@@ -239,19 +249,173 @@ export default function QuoteDetailScreen() {
         />
 
         {/* Summary */}
-        <View style={[styles.summary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
+        <View style={[styles.summary, { backgroundColor: colors.accent }]}>
           <Text style={[styles.summaryTitle, { color: "#FFFFFF" }]}>Quote Summary</Text>
+
           {totals.materialSubtotal > 0 && (
             <SummaryRow label="Materials" value={totals.materialSubtotal} dark />
           )}
           {totals.laborSubtotal > 0 && (
             <SummaryRow label="Labor" value={totals.laborSubtotal} dark />
           )}
-          <SummaryRow
-            label={`Markup (${settings.defaultMarkup}%)`}
-            value={totals.markupAmount}
-            dark
-          />
+
+          {/* Editable Markup Row */}
+          <View style={styles.summaryEditRow}>
+            <View style={styles.summaryEditLeft}>
+              <Text style={styles.summaryEditLabel}>
+                Markup
+              </Text>
+              {editingMarkup ? (
+                <View style={styles.markupInputRow}>
+                  <TextInput
+                    style={styles.markupInput}
+                    value={markupInput}
+                    onChangeText={setMarkupInput}
+                    keyboardType="numeric"
+                    autoFocus
+                    selectTextOnFocus
+                    returnKeyType="done"
+                    onSubmitEditing={() => {
+                      const val = parseFloat(markupInput);
+                      if (!isNaN(val) && val >= 0) {
+                        updateQuote(quote.id, { markupOverride: val });
+                      }
+                      setEditingMarkup(false);
+                    }}
+                    onBlur={() => {
+                      const val = parseFloat(markupInput);
+                      if (!isNaN(val) && val >= 0) {
+                        updateQuote(quote.id, { markupOverride: val });
+                      }
+                      setEditingMarkup(false);
+                    }}
+                  />
+                  <Text style={styles.markupInputPct}>%</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.markupBadge}
+                  onPress={() => {
+                    setMarkupInput(String(totals.markupPercent));
+                    setEditingMarkup(true);
+                  }}
+                >
+                  <Text style={styles.markupBadgeText}>{totals.markupPercent}%</Text>
+                  <Feather name="edit-2" size={10} color="rgba(255,255,255,0.7)" />
+                </TouchableOpacity>
+              )}
+              {quote.markupOverride !== undefined &&
+                quote.markupOverride !== settings.defaultMarkup && (
+                  <TouchableOpacity
+                    onPress={() => updateQuote(quote.id, { markupOverride: undefined })}
+                  >
+                    <Text style={styles.resetLink}>reset</Text>
+                  </TouchableOpacity>
+                )}
+            </View>
+            <Text style={styles.summaryEditValue}>
+              +${totals.markupAmount.toFixed(2)}
+            </Text>
+          </View>
+
+          {/* Discount Row */}
+          {showDiscountEditor || quote.discountAmount ? (
+            <View style={styles.summaryEditRow}>
+              <View style={styles.summaryEditLeft}>
+                <Text style={styles.summaryEditLabel}>Discount</Text>
+                {showDiscountEditor ? (
+                  <View style={styles.discountEditorRow}>
+                    {/* % / $ toggle */}
+                    <TouchableOpacity
+                      style={[
+                        styles.discountTypeBtn,
+                        discountTypeLocal === "percent" && styles.discountTypeBtnActive,
+                      ]}
+                      onPress={() => setDiscountTypeLocal("percent")}
+                    >
+                      <Text style={styles.discountTypeBtnText}>%</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.discountTypeBtn,
+                        discountTypeLocal === "flat" && styles.discountTypeBtnActive,
+                      ]}
+                      onPress={() => setDiscountTypeLocal("flat")}
+                    >
+                      <Text style={styles.discountTypeBtnText}>$</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.discountInput}
+                      value={discountInput}
+                      onChangeText={setDiscountInput}
+                      keyboardType="numeric"
+                      autoFocus
+                      selectTextOnFocus
+                      placeholder="0"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
+                      returnKeyType="done"
+                      onSubmitEditing={() => {
+                        const val = parseFloat(discountInput);
+                        if (!isNaN(val) && val > 0) {
+                          updateQuote(quote.id, {
+                            discountAmount: val,
+                            discountType: discountTypeLocal,
+                          });
+                        }
+                        setShowDiscountEditor(false);
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={() => {
+                        updateQuote(quote.id, {
+                          discountAmount: undefined,
+                          discountType: undefined,
+                        });
+                        setDiscountInput("");
+                        setShowDiscountEditor(false);
+                      }}
+                    >
+                      <Feather name="x" size={14} color="rgba(255,255,255,0.7)" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.markupBadge}
+                    onPress={() => {
+                      setDiscountInput(String(quote.discountAmount ?? ""));
+                      setDiscountTypeLocal(quote.discountType ?? "percent");
+                      setShowDiscountEditor(true);
+                    }}
+                  >
+                    <Text style={styles.markupBadgeText}>
+                      {quote.discountType === "flat"
+                        ? `$${quote.discountAmount}`
+                        : `${quote.discountAmount}%`}
+                    </Text>
+                    <Feather name="edit-2" size={10} color="rgba(255,255,255,0.7)" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {totals.discountAmount > 0 && (
+                <Text style={[styles.summaryEditValue, { color: "#86efac" }]}>
+                  -${totals.discountAmount.toFixed(2)}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.addDiscountBtn}
+              onPress={() => {
+                setDiscountTypeLocal("percent");
+                setDiscountInput("");
+                setShowDiscountEditor(true);
+              }}
+            >
+              <Feather name="tag" size={13} color="rgba(255,255,255,0.65)" />
+              <Text style={styles.addDiscountText}>Add Discount</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.summaryDivider} />
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>TOTAL</Text>
@@ -812,6 +976,112 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: "rgba(255,255,255,0.3)",
     marginVertical: 4,
+  },
+  summaryEditRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    minHeight: 32,
+  },
+  summaryEditLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  summaryEditLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.75)",
+  },
+  summaryEditValue: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
+  },
+  markupBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  markupBadgeText: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+  },
+  markupInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    gap: 2,
+  },
+  markupInput: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+    minWidth: 40,
+    maxWidth: 60,
+  },
+  markupInputPct: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+  },
+  resetLink: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.5)",
+    textDecorationLine: "underline",
+  },
+  addDiscountBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+  },
+  addDiscountText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(255,255,255,0.6)",
+  },
+  discountEditorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  discountTypeBtn: {
+    width: 28,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  discountTypeBtnActive: {
+    backgroundColor: "rgba(255,255,255,0.35)",
+  },
+  discountTypeBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+  },
+  discountInput: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: "#FFFFFF",
+    minWidth: 50,
+    maxWidth: 80,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
   totalRow: {
     flexDirection: "row",
