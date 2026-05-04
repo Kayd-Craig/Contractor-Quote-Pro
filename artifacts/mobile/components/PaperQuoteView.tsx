@@ -11,15 +11,120 @@ import {
 import type {
   ContractorSettings,
   LineItem,
+  QuoteFont,
+  QuoteTemplate,
   QuoteTotals,
 } from "@/context/QuoteContext";
 
-const MONO = Platform.select({
-  ios: "Courier New",
-  android: "monospace",
-  web: "Courier New, monospace",
-  default: "Courier New",
-});
+const FONT_FAMILIES: Record<QuoteFont, string> = {
+  classic: Platform.select({
+    ios: "Courier New",
+    android: "monospace",
+    web: "Courier New, monospace",
+    default: "Courier New",
+  }) as string,
+  modern: Platform.select({
+    ios: "System",
+    android: "sans-serif",
+    web: "Inter, -apple-system, Helvetica Neue, sans-serif",
+    default: "System",
+  }) as string,
+  elegant: Platform.select({
+    ios: "Georgia",
+    android: "serif",
+    web: "Georgia, Cambria, Times New Roman, serif",
+    default: "Georgia",
+  }) as string,
+  clean: Platform.select({
+    ios: "Helvetica Neue",
+    android: "sans-serif-light",
+    web: "Helvetica Neue, Arial, sans-serif",
+    default: "Helvetica Neue",
+  }) as string,
+};
+
+export const FONT_OPTIONS: { key: QuoteFont; label: string; preview: string }[] = [
+  { key: "classic", label: "Classic", preview: "Aa" },
+  { key: "modern", label: "Modern", preview: "Aa" },
+  { key: "elegant", label: "Elegant", preview: "Aa" },
+  { key: "clean", label: "Clean", preview: "Aa" },
+];
+
+interface TemplateColors {
+  paper: string;
+  headerBg: string;
+  headerText: string;
+  headerSubText: string;
+  bodyText: string;
+  bodySubText: string;
+  divider: string;
+  accent: string;
+  border: string;
+  totalBg: string;
+  footerText: string;
+}
+
+const TEMPLATE_THEMES: Record<QuoteTemplate, TemplateColors> = {
+  typewriter: {
+    paper: "#FAFAF2",
+    headerBg: "transparent",
+    headerText: "#1a1a10",
+    headerSubText: "#3a3a28",
+    bodyText: "#1a1a10",
+    bodySubText: "#4a4a38",
+    divider: "#9a9874",
+    accent: "#3a3a28",
+    border: "#E8E6D8",
+    totalBg: "transparent",
+    footerText: "#6a6a50",
+  },
+  professional: {
+    paper: "#FFFFFF",
+    headerBg: "#1A3A5C",
+    headerText: "#FFFFFF",
+    headerSubText: "rgba(255,255,255,0.8)",
+    bodyText: "#1A1A2E",
+    bodySubText: "#5A5A7A",
+    divider: "#D0D5DD",
+    accent: "#1A3A5C",
+    border: "#E4E7EC",
+    totalBg: "#F2F4F7",
+    footerText: "#667085",
+  },
+  bold: {
+    paper: "#FFFFFF",
+    headerBg: "#E87722",
+    headerText: "#FFFFFF",
+    headerSubText: "rgba(255,255,255,0.85)",
+    bodyText: "#111111",
+    bodySubText: "#555555",
+    divider: "#E0E0E0",
+    accent: "#E87722",
+    border: "#EEEEEE",
+    totalBg: "#FFF5EC",
+    footerText: "#888888",
+  },
+  minimal: {
+    paper: "#FAFAFA",
+    headerBg: "transparent",
+    headerText: "#111111",
+    headerSubText: "#777777",
+    bodyText: "#222222",
+    bodySubText: "#888888",
+    divider: "#E8E8E8",
+    accent: "#333333",
+    border: "#EEEEEE",
+    totalBg: "transparent",
+    footerText: "#AAAAAA",
+  },
+};
+
+export const TEMPLATE_OPTIONS: { key: QuoteTemplate; label: string; colors: [string, string, string] }[] = [
+  { key: "typewriter", label: "Typewriter", colors: ["#FAFAF2", "#3a3a28", "#9a9874"] },
+  { key: "professional", label: "Professional", colors: ["#1A3A5C", "#FFFFFF", "#D0D5DD"] },
+  { key: "bold", label: "Bold", colors: ["#E87722", "#FFFFFF", "#FFF5EC"] },
+  { key: "minimal", label: "Minimal", colors: ["#FAFAFA", "#111111", "#E8E8E8"] },
+];
 
 interface Props {
   customerName: string;
@@ -33,10 +138,9 @@ interface Props {
   createdAt: string;
   scrollable?: boolean;
   maxHeight?: number;
+  font?: QuoteFont;
+  template?: QuoteTemplate;
 }
-
-const DASHES = "- - - - - - - - - - - - - - - - - - - -";
-const EQUALS = "= = = = = = = = = = = = = = = = = = = =";
 
 export function PaperQuoteView({
   customerName,
@@ -50,9 +154,13 @@ export function PaperQuoteView({
   createdAt,
   scrollable,
   maxHeight,
+  font = "classic",
+  template = "typewriter",
 }: Props) {
   const materials = lineItems.filter((i) => i.type === "material");
   const labor = lineItems.filter((i) => i.type === "labor");
+  const t = TEMPLATE_THEMES[template];
+  const fontFamily = FONT_FAMILIES[font];
 
   const dateStr = new Date(createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -60,92 +168,147 @@ export function PaperQuoteView({
     day: "numeric",
   });
 
+  const isTypewriter = template === "typewriter";
+  const hasHeaderBg = t.headerBg !== "transparent";
+
+  const txt = (overrides?: object) => ({
+    fontFamily,
+    color: t.bodyText,
+    fontSize: 13,
+    lineHeight: 20 as number,
+    ...overrides,
+  });
+
   const content = (
-    <View style={styles.paper}>
-      {/* Logo (if set) */}
-      {settings.logoUri ? (
-        <View style={styles.logoRow}>
-          <Image
-            source={{ uri: settings.logoUri }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+    <View style={[styles.paper, { backgroundColor: t.paper, borderColor: t.border }]}>
+      {hasHeaderBg ? (
+        <View style={[styles.headerBlock, { backgroundColor: t.headerBg }]}>
+          {settings.logoUri ? (
+            <View style={styles.logoRow}>
+              <Image
+                source={{ uri: settings.logoUri }}
+                style={[styles.logo, { borderRadius: template === "bold" ? 6 : 8 }]}
+                resizeMode="contain"
+              />
+            </View>
+          ) : null}
+          <Text style={[txt({ color: t.headerText, fontSize: 16, fontWeight: "bold" as const, letterSpacing: 1, textAlign: "center" as const })]}>
+            {(settings.businessName || "CONTRACTOR QUOTE").toUpperCase()}
+          </Text>
+          {settings.name ? (
+            <Text style={[txt({ color: t.headerSubText, fontSize: 12, textAlign: "center" as const })]}>{settings.name}</Text>
+          ) : null}
+          {(settings.phone || settings.email) ? (
+            <Text style={[txt({ color: t.headerSubText, fontSize: 11, textAlign: "center" as const })]}>
+              {[settings.phone, settings.email].filter(Boolean).join("  |  ")}
+            </Text>
+          ) : null}
+          {settings.license ? (
+            <Text style={[txt({ color: t.headerSubText, fontSize: 11, textAlign: "center" as const })]}>
+              Lic# {settings.license}
+            </Text>
+          ) : null}
         </View>
-      ) : null}
+      ) : (
+        <>
+          {settings.logoUri ? (
+            <View style={styles.logoRow}>
+              <Image source={{ uri: settings.logoUri }} style={styles.logo} resizeMode="contain" />
+            </View>
+          ) : null}
+          <Text style={[txt({ fontSize: 15, fontWeight: "bold" as const, letterSpacing: 1, textAlign: "center" as const, marginBottom: 2 })]}>
+            {(settings.businessName || "CONTRACTOR QUOTE").toUpperCase()}
+          </Text>
+          {settings.name ? (
+            <Text style={[txt({ fontSize: 12, color: t.headerSubText, textAlign: "center" as const })]}>{settings.name}</Text>
+          ) : null}
+          {(settings.phone || settings.email) ? (
+            <Text style={[txt({ fontSize: 12, color: t.headerSubText, textAlign: "center" as const })]}>
+              {[settings.phone, settings.email].filter(Boolean).join("  |  ")}
+            </Text>
+          ) : null}
+          {settings.license ? (
+            <Text style={[txt({ fontSize: 12, color: t.headerSubText, textAlign: "center" as const })]}>
+              Lic# {settings.license}
+            </Text>
+          ) : null}
+        </>
+      )}
 
-      {/* Business header */}
-      <Text style={[styles.mono, styles.center, styles.businessName]}>
-        {(settings.businessName || "CONTRACTOR QUOTE").toUpperCase()}
-      </Text>
-      {settings.name ? (
-        <Text style={[styles.mono, styles.center, styles.headerSub]}>
-          {settings.name}
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginVertical: 8, fontSize: 12 })]}>
+          {"= = = = = = = = = = = = = = = = = = = ="}
         </Text>
-      ) : null}
-      {(settings.phone || settings.email) ? (
-        <Text style={[styles.mono, styles.center, styles.headerSub]}>
-          {[settings.phone, settings.email].filter(Boolean).join("  |  ")}
-        </Text>
-      ) : null}
-      {settings.license ? (
-        <Text style={[styles.mono, styles.center, styles.headerSub]}>
-          Lic# {settings.license}
-        </Text>
-      ) : null}
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.divider, marginVertical: 10 }]} />
+      )}
 
-      <Text style={[styles.mono, styles.center, styles.dividerText]}>
-        {EQUALS}
+      <Text style={[txt({
+        fontSize: isTypewriter ? 17 : 16,
+        fontWeight: "bold" as const,
+        letterSpacing: isTypewriter ? 4 : 2,
+        textAlign: "center" as const,
+        marginBottom: 2,
+        color: template === "bold" ? t.accent : t.bodyText,
+      })]}>
+        {isTypewriter ? "E S T I M A T E" : "ESTIMATE"}
       </Text>
-
-      <Text style={[styles.mono, styles.center, styles.estimateTitle]}>
-        E S T I M A T E
-      </Text>
-      <Text style={[styles.mono, styles.center, styles.dateText]}>
+      <Text style={[txt({ fontSize: 12, color: t.bodySubText, textAlign: "center" as const, marginBottom: 2 })]}>
         {dateStr}
       </Text>
 
-      <Text style={[styles.mono, styles.dividerText]}>{DASHES}</Text>
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginVertical: 8, fontSize: 12 })]}>
+          {"- - - - - - - - - - - - - - - - - - - -"}
+        </Text>
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.divider, marginVertical: 8 }]} />
+      )}
 
-      {/* Customer block */}
-      <Text style={[styles.mono, styles.sectionLabel]}>TO:</Text>
-      <Text style={[styles.mono, styles.indent]}>{customerName}</Text>
-      {jobAddress ? (
-        <Text style={[styles.mono, styles.indent]}>{jobAddress}</Text>
-      ) : null}
-      {customerPhone ? (
-        <Text style={[styles.mono, styles.indent]}>{customerPhone}</Text>
-      ) : null}
-      {customerEmail ? (
-        <Text style={[styles.mono, styles.indent]}>{customerEmail}</Text>
-      ) : null}
+      <Text style={[txt({ fontSize: 12, fontWeight: "bold" as const, color: t.bodySubText, marginBottom: 2 })]}>TO:</Text>
+      <Text style={[txt({ paddingLeft: 16 })]}>{customerName}</Text>
+      {jobAddress ? <Text style={[txt({ paddingLeft: 16 })]}>{jobAddress}</Text> : null}
+      {customerPhone ? <Text style={[txt({ paddingLeft: 16 })]}>{customerPhone}</Text> : null}
+      {customerEmail ? <Text style={[txt({ paddingLeft: 16 })]}>{customerEmail}</Text> : null}
 
       {jobDescription && jobDescription !== "Job quote" ? (
         <>
           <View style={styles.spacer} />
-          <Text style={[styles.mono, styles.sectionLabel]}>JOB:</Text>
-          <Text style={[styles.mono, styles.indent]}>{jobDescription}</Text>
+          <Text style={[txt({ fontSize: 12, fontWeight: "bold" as const, color: t.bodySubText, marginBottom: 2 })]}>JOB:</Text>
+          <Text style={[txt({ paddingLeft: 16 })]}>{jobDescription}</Text>
         </>
       ) : null}
 
-      <Text style={[styles.mono, styles.dividerText]}>{DASHES}</Text>
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginVertical: 8, fontSize: 12 })]}>
+          {"- - - - - - - - - - - - - - - - - - - -"}
+        </Text>
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.divider, marginVertical: 8 }]} />
+      )}
 
-      {/* Materials */}
       {materials.length > 0 ? (
         <>
-          <Text style={[styles.mono, styles.sectionHead]}>MATERIALS</Text>
+          <Text style={[txt({
+            fontSize: 12,
+            fontWeight: "bold" as const,
+            letterSpacing: 1,
+            color: template === "bold" ? t.accent : t.bodySubText,
+            marginBottom: 4,
+            textDecorationLine: isTypewriter ? ("underline" as const) : ("none" as const),
+          })]}>
+            MATERIALS
+          </Text>
           {materials.map((item) => {
             const total = item.quantity * item.unitPrice;
             return (
               <View key={item.id} style={styles.lineItemBlock}>
-                <Text style={[styles.mono, styles.itemDesc]}>
-                  {item.description}
-                </Text>
+                <Text style={[txt()]}>{item.description}</Text>
                 <View style={styles.itemDetailRow}>
-                  <Text style={[styles.mono, styles.itemDetailLeft]}>
-                    {"  "}
-                    {item.quantity} {item.unit} @ ${item.unitPrice.toFixed(2)}
+                  <Text style={[txt({ fontSize: 12, color: t.bodySubText, flex: 1 })]}>
+                    {"  "}{item.quantity} {item.unit} @ ${item.unitPrice.toFixed(2)}
                   </Text>
-                  <Text style={[styles.mono, styles.itemDetailRight]}>
+                  <Text style={[txt({ textAlign: "right" as const, minWidth: 60 })]}>
                     ${total.toFixed(2)}
                   </Text>
                 </View>
@@ -156,10 +319,18 @@ export function PaperQuoteView({
         </>
       ) : null}
 
-      {/* Labor */}
       {labor.length > 0 ? (
         <>
-          <Text style={[styles.mono, styles.sectionHead]}>LABOR</Text>
+          <Text style={[txt({
+            fontSize: 12,
+            fontWeight: "bold" as const,
+            letterSpacing: 1,
+            color: template === "bold" ? t.accent : t.bodySubText,
+            marginBottom: 4,
+            textDecorationLine: isTypewriter ? ("underline" as const) : ("none" as const),
+          })]}>
+            LABOR
+          </Text>
           {labor.map((item) => {
             const total = item.quantity * item.unitPrice;
             const detailLabel =
@@ -168,14 +339,12 @@ export function PaperQuoteView({
                 : `  ${item.quantity} ${item.unit} @ $${item.unitPrice.toFixed(2)}`;
             return (
               <View key={item.id} style={styles.lineItemBlock}>
-                <Text style={[styles.mono, styles.itemDesc]}>
-                  {item.description}
-                </Text>
+                <Text style={[txt()]}>{item.description}</Text>
                 <View style={styles.itemDetailRow}>
-                  <Text style={[styles.mono, styles.itemDetailLeft]}>
+                  <Text style={[txt({ fontSize: 12, color: t.bodySubText, flex: 1 })]}>
                     {detailLabel}
                   </Text>
-                  <Text style={[styles.mono, styles.itemDetailRight]}>
+                  <Text style={[txt({ textAlign: "right" as const, minWidth: 60 })]}>
                     ${total.toFixed(2)}
                   </Text>
                 </View>
@@ -186,48 +355,63 @@ export function PaperQuoteView({
         </>
       ) : null}
 
-      <Text style={[styles.mono, styles.dividerText]}>{DASHES}</Text>
-
-      {/* Totals */}
-      {totals.materialSubtotal > 0 && (
-        <View style={styles.totalRow}>
-          <Text style={[styles.mono, styles.totalLabel]}>Materials</Text>
-          <Text style={[styles.mono, styles.totalValue]}>
-            ${totals.materialSubtotal.toFixed(2)}
-          </Text>
-        </View>
-      )}
-      {totals.laborSubtotal > 0 && (
-        <View style={styles.totalRow}>
-          <Text style={[styles.mono, styles.totalLabel]}>Labor</Text>
-          <Text style={[styles.mono, styles.totalValue]}>
-            ${totals.laborSubtotal.toFixed(2)}
-          </Text>
-        </View>
-      )}
-      {totals.discountAmount > 0 && (
-        <View style={styles.totalRow}>
-          <Text style={[styles.mono, styles.totalLabel]}>Discount</Text>
-          <Text style={[styles.mono, styles.totalValue, { color: "#3a7a3a" }]}>
-            -${totals.discountAmount.toFixed(2)}
-          </Text>
-        </View>
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginVertical: 8, fontSize: 12 })]}>
+          {"- - - - - - - - - - - - - - - - - - - -"}
+        </Text>
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.divider, marginVertical: 8 }]} />
       )}
 
-      <Text style={[styles.mono, styles.dividerText]}>{DASHES}</Text>
+      <View style={[t.totalBg !== "transparent" && { backgroundColor: t.totalBg, borderRadius: 8, padding: 10, marginBottom: 4 }]}>
+        {totals.materialSubtotal > 0 && (
+          <View style={styles.totalRow}>
+            <Text style={[txt({ color: t.bodySubText })]}>Materials</Text>
+            <Text style={[txt({ textAlign: "right" as const })]}>${totals.materialSubtotal.toFixed(2)}</Text>
+          </View>
+        )}
+        {totals.laborSubtotal > 0 && (
+          <View style={styles.totalRow}>
+            <Text style={[txt({ color: t.bodySubText })]}>Labor</Text>
+            <Text style={[txt({ textAlign: "right" as const })]}>${totals.laborSubtotal.toFixed(2)}</Text>
+          </View>
+        )}
+        {totals.discountAmount > 0 && (
+          <View style={styles.totalRow}>
+            <Text style={[txt({ color: t.bodySubText })]}>Discount</Text>
+            <Text style={[txt({ color: "#3a7a3a", textAlign: "right" as const })]}>
+              -${totals.discountAmount.toFixed(2)}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginVertical: 8, fontSize: 12 })]}>
+          {"- - - - - - - - - - - - - - - - - - - -"}
+        </Text>
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.accent, marginVertical: 8, height: 2 }]} />
+      )}
 
       <View style={styles.totalRow}>
-        <Text style={[styles.mono, styles.grandTotalLabel]}>TOTAL DUE</Text>
-        <Text style={[styles.mono, styles.grandTotalValue]}>
+        <Text style={[txt({ fontSize: 15, fontWeight: "bold" as const, letterSpacing: 0.5, color: template === "bold" ? t.accent : t.bodyText })]}>
+          TOTAL DUE
+        </Text>
+        <Text style={[txt({ fontSize: 16, fontWeight: "bold" as const, color: template === "bold" ? t.accent : t.bodyText })]}>
           ${totals.total.toFixed(2)}
         </Text>
       </View>
 
-      <Text style={[styles.mono, styles.dividerText, { marginTop: 4 }]}>
-        {EQUALS}
-      </Text>
+      {isTypewriter ? (
+        <Text style={[txt({ color: t.divider, textAlign: "center" as const, marginTop: 4, marginBottom: 0, fontSize: 12 })]}>
+          {"= = = = = = = = = = = = = = = = = = = ="}
+        </Text>
+      ) : (
+        <View style={[styles.dividerLine, { backgroundColor: t.divider, marginTop: 8 }]} />
+      )}
 
-      <Text style={[styles.mono, styles.center, styles.footer]}>
+      <Text style={[txt({ fontSize: 12, color: t.footerText, marginTop: 6, fontStyle: "italic" as const, textAlign: "center" as const })]}>
         Thank you for your business!
       </Text>
     </View>
@@ -255,7 +439,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   paper: {
-    backgroundColor: "#FAFAF2",
     borderRadius: 4,
     paddingHorizontal: 20,
     paddingVertical: 22,
@@ -265,7 +448,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 1,
-    borderColor: "#E8E6D8",
+  },
+  headerBlock: {
+    marginHorizontal: -20,
+    marginTop: -22,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 14,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    gap: 2,
+    marginBottom: 0,
   },
   logoRow: {
     alignItems: "center",
@@ -277,117 +470,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "transparent",
   },
-  mono: {
-    fontFamily: MONO,
-    color: "#1a1a10",
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  center: {
-    textAlign: "center",
-  },
-  businessName: {
-    fontSize: 15,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  headerSub: {
-    fontSize: 12,
-    color: "#3a3a28",
-  },
-  dividerText: {
-    color: "#9a9874",
-    textAlign: "center",
-    marginVertical: 8,
-    fontSize: 12,
-  },
-  estimateTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    letterSpacing: 4,
-    marginBottom: 2,
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#3a3a28",
-    marginBottom: 2,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#3a3a28",
-    marginBottom: 2,
-  },
-  indent: {
-    fontSize: 13,
-    paddingLeft: 16,
-    color: "#1a1a10",
+  dividerLine: {
+    height: 1,
   },
   spacer: {
     height: 6,
   },
-  sectionHead: {
-    fontSize: 12,
-    fontWeight: "bold",
-    letterSpacing: 1,
-    color: "#3a3a28",
-    marginBottom: 4,
-    textDecorationLine: "underline",
-  },
   lineItemBlock: {
     marginBottom: 6,
-  },
-  itemDesc: {
-    fontSize: 13,
-    color: "#1a1a10",
   },
   itemDetailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  itemDetailLeft: {
-    fontSize: 12,
-    color: "#4a4a38",
-    flex: 1,
-  },
-  itemDetailRight: {
-    fontSize: 13,
-    color: "#1a1a10",
-    textAlign: "right",
-    minWidth: 60,
-  },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginVertical: 1,
-  },
-  totalLabel: {
-    fontSize: 13,
-    color: "#3a3a28",
-  },
-  totalValue: {
-    fontSize: 13,
-    color: "#1a1a10",
-    textAlign: "right",
-  },
-  grandTotalLabel: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#1a1a10",
-    letterSpacing: 0.5,
-  },
-  grandTotalValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a10",
-  },
-  footer: {
-    fontSize: 12,
-    color: "#6a6a50",
-    marginTop: 6,
-    fontStyle: "italic",
   },
 });

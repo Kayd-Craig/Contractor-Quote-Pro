@@ -128,6 +128,8 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
             createdAt={quote.createdAt}
             scrollable
             maxHeight={260}
+            font={quote.quoteFont || "classic"}
+            template={quote.quoteTemplate || "typewriter"}
           />
 
           <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>

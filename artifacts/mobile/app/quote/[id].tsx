@@ -18,12 +18,12 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LineItemRow } from "@/components/LineItemRow";
-import { PaperQuoteView } from "@/components/PaperQuoteView";
+import { FONT_OPTIONS, PaperQuoteView, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
 import { PhotosSection } from "@/components/PhotosSection";
 import type { Product } from "@/components/ProductCard";
 import { ProductCard } from "@/components/ProductCard";
 import { SendQuoteModal } from "@/components/SendQuoteModal";
-import type { LineItem } from "@/context/QuoteContext";
+import type { LineItem, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 import { useSearchProducts } from "@workspace/api-client-react";
@@ -512,6 +512,55 @@ export default function QuoteDetailScreen() {
               <Feather name="x" size={22} color="#FAFAF2" />
             </TouchableOpacity>
           </View>
+
+          {/* Style pickers */}
+          <View style={styles.stylePickerArea}>
+            <View style={styles.stylePickerRow}>
+              <Text style={styles.stylePickerLabel}>TEMPLATE</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.styleChipsScroll}>
+                {TEMPLATE_OPTIONS.map((opt) => {
+                  const active = (quote.quoteTemplate || "typewriter") === opt.key;
+                  return (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.templateChip, active && styles.templateChipActive]}
+                      onPress={() => updateQuote(quote.id, { quoteTemplate: opt.key })}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.templatePreview}>
+                        <View style={[styles.templatePreviewTop, { backgroundColor: opt.colors[0] }]} />
+                        <View style={[styles.templatePreviewLine, { backgroundColor: opt.colors[2] }]} />
+                        <View style={[styles.templatePreviewLine, { backgroundColor: opt.colors[2], width: 16 }]} />
+                      </View>
+                      <Text style={[styles.templateChipText, active && styles.templateChipTextActive]}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+            <View style={styles.stylePickerRow}>
+              <Text style={styles.stylePickerLabel}>FONT</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.styleChipsScroll}>
+                {FONT_OPTIONS.map((opt) => {
+                  const active = (quote.quoteFont || "classic") === opt.key;
+                  return (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.fontChip, active && styles.fontChipActive]}
+                      onPress={() => updateQuote(quote.id, { quoteFont: opt.key })}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.fontChipPreview, { fontFamily: opt.key === "classic" ? (Platform.OS === "web" ? "Courier New, monospace" : "Courier New") : opt.key === "elegant" ? (Platform.OS === "web" ? "Georgia, serif" : "Georgia") : opt.key === "clean" ? (Platform.OS === "web" ? "Helvetica Neue, Arial, sans-serif" : "Helvetica Neue") : undefined }, active && styles.fontChipPreviewActive]}>
+                        {opt.preview}
+                      </Text>
+                      <Text style={[styles.fontChipText, active && styles.fontChipTextActive]}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
+
           <ScrollView
             contentContainerStyle={styles.previewModalScroll}
             showsVerticalScrollIndicator={false}
@@ -526,6 +575,8 @@ export default function QuoteDetailScreen() {
               settings={settings}
               totals={totals}
               createdAt={quote.createdAt}
+              font={quote.quoteFont || "classic"}
+              template={quote.quoteTemplate || "typewriter"}
             />
           </ScrollView>
           <TouchableOpacity
@@ -1487,4 +1538,100 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   addItemBtnText: { fontSize: 16, fontFamily: "Inter_700Bold" },
+
+  stylePickerArea: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#3a3a30",
+  },
+  stylePickerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  stylePickerLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: "rgba(250,250,242,0.5)",
+    letterSpacing: 0.8,
+    width: 68,
+  },
+  styleChipsScroll: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  templateChip: {
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(250,250,242,0.15)",
+  },
+  templateChipActive: {
+    borderColor: "#E87722",
+    backgroundColor: "rgba(232,119,34,0.15)",
+  },
+  templatePreview: {
+    width: 32,
+    height: 22,
+    borderRadius: 3,
+    backgroundColor: "#FFFFFF",
+    padding: 3,
+    gap: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  templatePreviewTop: {
+    width: "100%",
+    height: 8,
+    borderRadius: 1,
+  },
+  templatePreviewLine: {
+    width: 22,
+    height: 2,
+    borderRadius: 1,
+  },
+  templateChipText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(250,250,242,0.6)",
+  },
+  templateChipTextActive: {
+    color: "#E87722",
+  },
+  fontChip: {
+    alignItems: "center",
+    gap: 3,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(250,250,242,0.15)",
+  },
+  fontChipActive: {
+    borderColor: "#E87722",
+    backgroundColor: "rgba(232,119,34,0.15)",
+  },
+  fontChipPreview: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "rgba(250,250,242,0.7)",
+  },
+  fontChipPreviewActive: {
+    color: "#E87722",
+  },
+  fontChipText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(250,250,242,0.6)",
+  },
+  fontChipTextActive: {
+    color: "#E87722",
+  },
 });

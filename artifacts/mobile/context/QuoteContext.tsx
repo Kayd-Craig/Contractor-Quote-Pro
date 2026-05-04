@@ -19,6 +19,9 @@ export interface LineItem {
   sku?: string | null;
 }
 
+export type QuoteFont = "classic" | "modern" | "elegant" | "clean";
+export type QuoteTemplate = "typewriter" | "professional" | "bold" | "minimal";
+
 export interface Quote {
   id: string;
   customerName: string;
@@ -32,6 +35,8 @@ export interface Quote {
   markupOverride?: number;
   discountAmount?: number;
   discountType?: "percent" | "flat";
+  quoteFont?: QuoteFont;
+  quoteTemplate?: QuoteTemplate;
   createdAt: string;
   updatedAt: string;
 }
