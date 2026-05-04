@@ -17,6 +17,7 @@ router.post("/quotes/payment", async (req: Request, res: Response) => {
     quoteId,
     contractorName,
     businessName,
+    stripeAccountId,
   } = req.body;
 
   if (!customerName || typeof customerName !== "string" || !customerName.trim()) {
@@ -81,6 +82,22 @@ router.post("/quotes/payment", async (req: Request, res: Response) => {
 
     if (customerEmail && typeof customerEmail === "string" && customerEmail.includes("@")) {
       sessionParams.customer_email = customerEmail;
+    }
+
+    if (stripeAccountId && typeof stripeAccountId === "string" && stripeAccountId.startsWith("acct_")) {
+      try {
+        const account = await stripe.accounts.retrieve(stripeAccountId);
+        if (account.metadata?.source === "quick_quote" && account.charges_enabled) {
+          sessionParams.payment_intent_data = {
+            application_fee_amount: serviceFeeCents,
+            transfer_data: {
+              destination: stripeAccountId,
+            },
+          };
+        }
+      } catch {
+        req.log.warn({ stripeAccountId }, "Could not verify connected account, proceeding without split payment");
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);

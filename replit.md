@@ -73,6 +73,15 @@ React Native (Expo) app for contractors to create on-site job quotes.
 - Public success/cancelled pages at `/api/payment-success` and `/api/payment-cancelled` (no auth required)
 - Stripe credentials fetched via Replit connectors API (settings keys: `secret`, `publishable`, `account_id`)
 - Database: PostgreSQL with `stripe` schema managed by `stripe-replit-sync` (auto-migrations on startup)
+
+### Stripe Connect (Contractor Payouts)
+- Contractors connect their own Stripe account via Stripe Connect Express onboarding (Settings → Payments & Payouts)
+- When a client pays, the service fee (3% + $0.50) is kept by the platform via `application_fee_amount`, and the rest is transferred to the contractor's connected account via `transfer_data.destination`
+- Connected account ID (`stripeAccountId`) stored in ContractorSettings (AsyncStorage)
+- API routes: `POST /api/connect/onboard`, `GET /api/connect/status`, `GET /api/connect/dashboard`, `GET /api/connect/balance`
+- Public return/refresh pages at `/api/connect/return` and `/api/connect/refresh` (no auth required)
+- Settings screen shows balance (available/pending) and link to Stripe Express dashboard for managing payouts
+- **Prerequisite**: Stripe Connect must be enabled on the platform Stripe account at https://dashboard.stripe.com/connect
 - Dependencies: `stripe`, `stripe-replit-sync` (externalized in esbuild config)
 
 ### Important Files

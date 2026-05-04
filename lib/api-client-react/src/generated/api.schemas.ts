@@ -68,6 +68,40 @@ export interface CreatePaymentRequest {
   quoteId?: string | null;
   contractorName?: string | null;
   businessName?: string | null;
+  /** Contractor's Stripe Connect account ID for split payments */
+  stripeAccountId?: string | null;
+}
+
+export interface ConnectOnboardRequest {
+  email?: string | null;
+  businessName?: string | null;
+  contractorName?: string | null;
+}
+
+export interface ConnectOnboardResult {
+  accountId: string;
+  onboardingUrl: string;
+}
+
+export interface ConnectStatusResult {
+  accountId: string;
+  /** Account status: active, pending, incomplete */
+  status: string;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+  email?: string | null;
+  businessName?: string | null;
+}
+
+export interface ConnectDashboardResult {
+  dashboardUrl: string;
+}
+
+export interface ConnectBalanceResult {
+  availableBalance: number;
+  pendingBalance: number;
+  currency: string;
 }
 
 export interface CreatePaymentResult {
@@ -178,3 +212,15 @@ export const SearchProductsStore = {
   lowes: "lowes",
   all: "all",
 } as const;
+
+export type GetConnectStatusParams = {
+  account_id: string;
+};
+
+export type GetConnectDashboardParams = {
+  account_id: string;
+};
+
+export type GetConnectBalanceParams = {
+  account_id: string;
+};

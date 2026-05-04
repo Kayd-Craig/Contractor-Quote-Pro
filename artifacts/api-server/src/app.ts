@@ -73,6 +73,58 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/api/connect/return", (_req: Request, res: Response) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Account Setup Complete</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #F7F6F4; color: #1A3A5C; }
+        .card { text-align: center; background: white; padding: 48px 36px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 400px; }
+        .check { font-size: 64px; margin-bottom: 16px; color: #2E7D32; }
+        h1 { font-size: 24px; margin: 0 0 8px; color: #2E7D32; }
+        p { font-size: 16px; color: #555; line-height: 1.5; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="check">&#10003;</div>
+        <h1>Account Setup Complete!</h1>
+        <p>Your Stripe account is connected. You can now receive payments through Quick Quote. Return to the app to continue.</p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+app.get("/api/connect/refresh", (_req: Request, res: Response) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Session Expired</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #F7F6F4; color: #1A3A5C; }
+        .card { text-align: center; background: white; padding: 48px 36px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 400px; }
+        .icon { font-size: 48px; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin: 0 0 8px; color: #1A3A5C; }
+        p { font-size: 16px; color: #555; line-height: 1.5; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="icon">&#8634;</div>
+        <h1>Session Expired</h1>
+        <p>Your Stripe onboarding session has expired. Please return to the Quick Quote app and tap "Complete Account Setup" to continue where you left off.</p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
 app.get("/api/payment-success", (_req: Request, res: Response) => {
   res.send(`
     <!DOCTYPE html>

@@ -15,4 +15,6 @@ export interface CreatePaymentRequest {
   quoteId?: string | null;
   contractorName?: string | null;
   businessName?: string | null;
+  /** Contractor's Stripe Connect account ID for split payments */
+  stripeAccountId?: string | null;
 }

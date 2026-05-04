@@ -6,8 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./connectBalanceResult";
+export * from "./connectDashboardResult";
+export * from "./connectOnboardRequest";
+export * from "./connectOnboardResult";
+export * from "./connectStatusResult";
 export * from "./createPaymentRequest";
 export * from "./createPaymentResult";
+export * from "./getConnectBalanceParams";
+export * from "./getConnectDashboardParams";
+export * from "./getConnectStatusParams";
 export * from "./healthStatus";
 export * from "./paymentStatusResult";
 export * from "./product";

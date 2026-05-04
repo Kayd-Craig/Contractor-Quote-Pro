@@ -64,6 +64,10 @@ export const CreatePaymentBody = zod.object({
   quoteId: zod.string().nullish(),
   contractorName: zod.string().nullish(),
   businessName: zod.string().nullish(),
+  stripeAccountId: zod
+    .string()
+    .nullish()
+    .describe("Contractor's Stripe Connect account ID for split payments"),
 });
 
 export const CreatePaymentResponse = zod.object({
@@ -91,6 +95,61 @@ export const GetPaymentStatusResponse = zod.object({
   amountTotal: zod.number(),
   customerEmail: zod.string().nullish(),
   paymentUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary Create a Stripe Connect Express account and return onboarding link
+ */
+export const ConnectOnboardBody = zod.object({
+  email: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  contractorName: zod.string().nullish(),
+});
+
+export const ConnectOnboardResponse = zod.object({
+  accountId: zod.string(),
+  onboardingUrl: zod.string(),
+});
+
+/**
+ * @summary Check Stripe Connect account status
+ */
+export const GetConnectStatusQueryParams = zod.object({
+  account_id: zod.coerce.string(),
+});
+
+export const GetConnectStatusResponse = zod.object({
+  accountId: zod.string(),
+  status: zod.string().describe("Account status: active, pending, incomplete"),
+  chargesEnabled: zod.boolean(),
+  payoutsEnabled: zod.boolean(),
+  detailsSubmitted: zod.boolean(),
+  email: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+});
+
+/**
+ * @summary Get Stripe Express dashboard login link
+ */
+export const GetConnectDashboardQueryParams = zod.object({
+  account_id: zod.coerce.string(),
+});
+
+export const GetConnectDashboardResponse = zod.object({
+  dashboardUrl: zod.string(),
+});
+
+/**
+ * @summary Get contractor balance from connected Stripe account
+ */
+export const GetConnectBalanceQueryParams = zod.object({
+  account_id: zod.coerce.string(),
+});
+
+export const GetConnectBalanceResponse = zod.object({
+  availableBalance: zod.number(),
+  pendingBalance: zod.number(),
+  currency: zod.string(),
 });
 
 /**

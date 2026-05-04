@@ -17,8 +17,16 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  ConnectBalanceResult,
+  ConnectDashboardResult,
+  ConnectOnboardRequest,
+  ConnectOnboardResult,
+  ConnectStatusResult,
   CreatePaymentRequest,
   CreatePaymentResult,
+  GetConnectBalanceParams,
+  GetConnectDashboardParams,
+  GetConnectStatusParams,
   HealthStatus,
   PaymentStatusResult,
   ProductSearchResult,
@@ -373,6 +381,389 @@ export function useGetPaymentStatus<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetPaymentStatusQueryOptions(sessionId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a Stripe Connect Express account and return onboarding link
+ */
+export const getConnectOnboardUrl = () => {
+  return `/api/connect/onboard`;
+};
+
+export const connectOnboard = async (
+  connectOnboardRequest: ConnectOnboardRequest,
+  options?: RequestInit,
+): Promise<ConnectOnboardResult> => {
+  return customFetch<ConnectOnboardResult>(getConnectOnboardUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(connectOnboardRequest),
+  });
+};
+
+export const getConnectOnboardMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectOnboard>>,
+    TError,
+    { data: BodyType<ConnectOnboardRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof connectOnboard>>,
+  TError,
+  { data: BodyType<ConnectOnboardRequest> },
+  TContext
+> => {
+  const mutationKey = ["connectOnboard"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof connectOnboard>>,
+    { data: BodyType<ConnectOnboardRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return connectOnboard(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConnectOnboardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof connectOnboard>>
+>;
+export type ConnectOnboardMutationBody = BodyType<ConnectOnboardRequest>;
+export type ConnectOnboardMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a Stripe Connect Express account and return onboarding link
+ */
+export const useConnectOnboard = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof connectOnboard>>,
+    TError,
+    { data: BodyType<ConnectOnboardRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof connectOnboard>>,
+  TError,
+  { data: BodyType<ConnectOnboardRequest> },
+  TContext
+> => {
+  return useMutation(getConnectOnboardMutationOptions(options));
+};
+
+/**
+ * @summary Check Stripe Connect account status
+ */
+export const getGetConnectStatusUrl = (params: GetConnectStatusParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/connect/status?${stringifiedParams}`
+    : `/api/connect/status`;
+};
+
+export const getConnectStatus = async (
+  params: GetConnectStatusParams,
+  options?: RequestInit,
+): Promise<ConnectStatusResult> => {
+  return customFetch<ConnectStatusResult>(getGetConnectStatusUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetConnectStatusQueryKey = (
+  params?: GetConnectStatusParams,
+) => {
+  return [`/api/connect/status`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetConnectStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConnectStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetConnectStatusQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getConnectStatus>>
+  > = ({ signal }) => getConnectStatus(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConnectStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConnectStatus>>
+>;
+export type GetConnectStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Check Stripe Connect account status
+ */
+
+export function useGetConnectStatus<
+  TData = Awaited<ReturnType<typeof getConnectStatus>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConnectStatusQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get Stripe Express dashboard login link
+ */
+export const getGetConnectDashboardUrl = (
+  params: GetConnectDashboardParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/connect/dashboard?${stringifiedParams}`
+    : `/api/connect/dashboard`;
+};
+
+export const getConnectDashboard = async (
+  params: GetConnectDashboardParams,
+  options?: RequestInit,
+): Promise<ConnectDashboardResult> => {
+  return customFetch<ConnectDashboardResult>(
+    getGetConnectDashboardUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetConnectDashboardQueryKey = (
+  params?: GetConnectDashboardParams,
+) => {
+  return [`/api/connect/dashboard`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetConnectDashboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConnectDashboard>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectDashboardParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectDashboard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetConnectDashboardQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getConnectDashboard>>
+  > = ({ signal }) =>
+    getConnectDashboard(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectDashboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConnectDashboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConnectDashboard>>
+>;
+export type GetConnectDashboardQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get Stripe Express dashboard login link
+ */
+
+export function useGetConnectDashboard<
+  TData = Awaited<ReturnType<typeof getConnectDashboard>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectDashboardParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectDashboard>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConnectDashboardQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get contractor balance from connected Stripe account
+ */
+export const getGetConnectBalanceUrl = (params: GetConnectBalanceParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/connect/balance?${stringifiedParams}`
+    : `/api/connect/balance`;
+};
+
+export const getConnectBalance = async (
+  params: GetConnectBalanceParams,
+  options?: RequestInit,
+): Promise<ConnectBalanceResult> => {
+  return customFetch<ConnectBalanceResult>(getGetConnectBalanceUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetConnectBalanceQueryKey = (
+  params?: GetConnectBalanceParams,
+) => {
+  return [`/api/connect/balance`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetConnectBalanceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getConnectBalance>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectBalanceParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectBalance>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetConnectBalanceQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getConnectBalance>>
+  > = ({ signal }) => getConnectBalance(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getConnectBalance>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetConnectBalanceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getConnectBalance>>
+>;
+export type GetConnectBalanceQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get contractor balance from connected Stripe account
+ */
+
+export function useGetConnectBalance<
+  TData = Awaited<ReturnType<typeof getConnectBalance>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetConnectBalanceParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getConnectBalance>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetConnectBalanceQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

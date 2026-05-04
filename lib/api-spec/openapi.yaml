@@ -95,6 +95,82 @@ paths:
               schema:
                 $ref: "#/components/schemas/PaymentStatusResult"
 
+  /connect/onboard:
+    post:
+      operationId: connectOnboard
+      tags: [connect]
+      summary: Create a Stripe Connect Express account and return onboarding link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectOnboardRequest"
+      responses:
+        "200":
+          description: Onboarding link created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectOnboardResult"
+
+  /connect/status:
+    get:
+      operationId: getConnectStatus
+      tags: [connect]
+      summary: Check Stripe Connect account status
+      parameters:
+        - name: account_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Account status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectStatusResult"
+
+  /connect/dashboard:
+    get:
+      operationId: getConnectDashboard
+      tags: [connect]
+      summary: Get Stripe Express dashboard login link
+      parameters:
+        - name: account_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectDashboardResult"
+
+  /connect/balance:
+    get:
+      operationId: getConnectBalance
+      tags: [connect]
+      summary: Get contractor balance from connected Stripe account
+      parameters:
+        - name: account_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Balance info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectBalanceResult"
+
   /quotes/send:
     post:
       operationId: sendQuote
@@ -235,10 +311,87 @@ components:
         businessName:
           type: string
           nullable: true
+        stripeAccountId:
+          type: string
+          nullable: true
+          description: Contractor's Stripe Connect account ID for split payments
       required:
         - customerName
         - jobDescription
         - amount
+
+    ConnectOnboardRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          nullable: true
+        businessName:
+          type: string
+          nullable: true
+        contractorName:
+          type: string
+          nullable: true
+
+    ConnectOnboardResult:
+      type: object
+      properties:
+        accountId:
+          type: string
+        onboardingUrl:
+          type: string
+      required:
+        - accountId
+        - onboardingUrl
+
+    ConnectStatusResult:
+      type: object
+      properties:
+        accountId:
+          type: string
+        status:
+          type: string
+          description: "Account status: active, pending, incomplete"
+        chargesEnabled:
+          type: boolean
+        payoutsEnabled:
+          type: boolean
+        detailsSubmitted:
+          type: boolean
+        email:
+          type: string
+          nullable: true
+        businessName:
+          type: string
+          nullable: true
+      required:
+        - accountId
+        - status
+        - chargesEnabled
+        - payoutsEnabled
+        - detailsSubmitted
+
+    ConnectDashboardResult:
+      type: object
+      properties:
+        dashboardUrl:
+          type: string
+      required:
+        - dashboardUrl
+
+    ConnectBalanceResult:
+      type: object
+      properties:
+        availableBalance:
+          type: number
+        pendingBalance:
+          type: number
+        currency:
+          type: string
+      required:
+        - availableBalance
+        - pendingBalance
+        - currency
 
     CreatePaymentResult:
       type: object

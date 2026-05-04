@@ -59,6 +59,8 @@ export interface ContractorSettings {
   defaultQuoteFont?: QuoteFont;
   defaultQuoteTemplate?: QuoteTemplate;
   preferredStore?: PreferredStore;
+  stripeAccountId?: string;
+  stripeOnboarded?: boolean;
 }
 
 export interface QuoteTotals {

@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Modal,
@@ -20,6 +22,7 @@ import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
 import type { ContractorSettings, PreferredStore, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
 import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
+import { useConnectOnboard, getConnectDashboard, useGetConnectBalance, useGetConnectStatus } from "@workspace/api-client-react";
 
 export default function SettingsScreen() {
   const colors = useColors();
@@ -29,10 +32,90 @@ export default function SettingsScreen() {
   const [form, setForm] = useState<ContractorSettings>(settings);
   const [saved, setSaved] = useState(false);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  const { mutateAsync: onboardConnect } = useConnectOnboard();
+
+  const hasStripeAccount = !!settings.stripeAccountId;
+
+  const { data: connectStatus, refetch: refetchStatus } = useGetConnectStatus(
+    { account_id: settings.stripeAccountId || "" },
+    { query: { enabled: hasStripeAccount } }
+  );
+
+  const { data: balanceData, refetch: refetchBalance } = useGetConnectBalance(
+    { account_id: settings.stripeAccountId || "" },
+    { query: { enabled: hasStripeAccount && connectStatus?.status === "active" } }
+  );
 
   useEffect(() => {
     setForm(settings);
   }, [settings]);
+
+  const handleConnectStripe = useCallback(async () => {
+    setConnectLoading(true);
+    try {
+      const data: Record<string, any> = {
+        email: settings.email || undefined,
+        businessName: settings.businessName || undefined,
+        contractorName: settings.name || undefined,
+      };
+
+      if (settings.stripeAccountId) {
+        data.existingAccountId = settings.stripeAccountId;
+      }
+
+      const result = await onboardConnect({ data: data as any });
+
+      updateSettings({
+        stripeAccountId: result.accountId,
+        stripeOnboarded: false,
+      });
+
+      if (Platform.OS === "web") {
+        window.open(result.onboardingUrl, "_blank");
+      } else {
+        await WebBrowser.openBrowserAsync(result.onboardingUrl);
+      }
+
+      setTimeout(() => refetchStatus(), 2000);
+    } catch (err: any) {
+      const msg = err?.response?.data?.connectRequired
+        ? "Stripe Connect is not yet enabled. Please contact the app administrator to set it up."
+        : "Failed to start Stripe account setup. Please try again.";
+      Alert.alert("Setup Error", msg);
+    } finally {
+      setConnectLoading(false);
+    }
+  }, [settings, onboardConnect, updateSettings, refetchStatus]);
+
+  const handleOpenDashboard = useCallback(async () => {
+    if (!settings.stripeAccountId) return;
+    setDashboardLoading(true);
+    try {
+      const result = await getConnectDashboard({ account_id: settings.stripeAccountId });
+      if (result.dashboardUrl) {
+        if (Platform.OS === "web") {
+          window.open(result.dashboardUrl, "_blank");
+        } else {
+          await WebBrowser.openBrowserAsync(result.dashboardUrl);
+        }
+      }
+    } catch (err: any) {
+      Alert.alert("Error", "Unable to open Stripe dashboard. Make sure your account setup is complete.");
+    } finally {
+      setDashboardLoading(false);
+    }
+  }, [settings.stripeAccountId]);
+
+  const handleRefreshConnect = useCallback(() => {
+    refetchStatus();
+    if (connectStatus?.status === "active") {
+      refetchBalance();
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [refetchStatus, refetchBalance, connectStatus]);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom > 0 ? insets.bottom : 16;
@@ -510,6 +593,128 @@ export default function SettingsScreen() {
           <Feather name="info" size={13} color={colors.mutedForeground} />
           <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
             New quotes will use this style by default. You can still change the style per-quote from the quote preview screen.
+          </Text>
+        </View>
+
+        {/* Stripe Connect / Payments */}
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          PAYMENTS & PAYOUTS
+        </Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {!hasStripeAccount ? (
+            <View style={styles.connectSection}>
+              <View style={styles.connectHeader}>
+                <View style={[styles.connectIconWrap, { backgroundColor: "#635BFF" + "15" }]}>
+                  <Feather name="credit-card" size={20} color="#635BFF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.markupLabel, { color: colors.foreground }]}>Connect Stripe Account</Text>
+                  <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>
+                    Receive payments directly to your bank account
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[styles.connectBtn, { backgroundColor: "#635BFF" }]}
+                onPress={handleConnectStripe}
+                disabled={connectLoading}
+                activeOpacity={0.85}
+              >
+                {connectLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Feather name="link" size={16} color="#fff" />
+                    <Text style={styles.connectBtnText}>Set Up Stripe Account</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.connectSection}>
+              <View style={styles.connectHeader}>
+                <View style={[styles.connectIconWrap, {
+                  backgroundColor: connectStatus?.status === "active" ? colors.success + "15" : "#F59E0B" + "15"
+                }]}>
+                  <Feather
+                    name={connectStatus?.status === "active" ? "check-circle" : "clock"}
+                    size={20}
+                    color={connectStatus?.status === "active" ? colors.success : "#F59E0B"}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.markupLabel, { color: colors.foreground }]}>
+                    Stripe Account {connectStatus?.status === "active" ? "Connected" : connectStatus?.status === "pending" ? "Pending" : "Incomplete"}
+                  </Text>
+                  <Text style={[styles.markupDesc, { color: colors.mutedForeground }]}>
+                    {connectStatus?.status === "active"
+                      ? "Your account is active and receiving payments"
+                      : "Complete your account setup to receive payments"}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={handleRefreshConnect} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Feather name="refresh-cw" size={16} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+
+              {connectStatus?.status === "active" && balanceData && (
+                <View style={[styles.balanceRow, { borderTopColor: colors.border }]}>
+                  <View style={styles.balanceItem}>
+                    <Text style={[styles.balanceLabel, { color: colors.mutedForeground }]}>Available</Text>
+                    <Text style={[styles.balanceValue, { color: colors.success }]}>
+                      ${balanceData.availableBalance.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={[styles.balanceDivider, { backgroundColor: colors.border }]} />
+                  <View style={styles.balanceItem}>
+                    <Text style={[styles.balanceLabel, { color: colors.mutedForeground }]}>Pending</Text>
+                    <Text style={[styles.balanceValue, { color: colors.foreground }]}>
+                      ${balanceData.pendingBalance.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {connectStatus?.status === "active" ? (
+                <TouchableOpacity
+                  style={[styles.connectBtn, { backgroundColor: "#635BFF" }]}
+                  onPress={handleOpenDashboard}
+                  disabled={dashboardLoading}
+                  activeOpacity={0.85}
+                >
+                  {dashboardLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Feather name="external-link" size={16} color="#fff" />
+                      <Text style={styles.connectBtnText}>Open Stripe Dashboard</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.connectBtn, { backgroundColor: "#F59E0B" }]}
+                  onPress={handleConnectStripe}
+                  disabled={connectLoading}
+                  activeOpacity={0.85}
+                >
+                  {connectLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Feather name="arrow-right" size={16} color="#fff" />
+                      <Text style={styles.connectBtnText}>Complete Account Setup</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+        <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Feather name="info" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
+            When connected, client payments go directly to your Stripe account. A 3% + $0.50 service fee is deducted automatically per transaction.
           </Text>
         </View>
 
@@ -1025,5 +1230,59 @@ const styles = StyleSheet.create({
   fontPreviewLetter: {
     fontSize: 18,
     fontWeight: "600",
+  },
+  connectSection: {
+    padding: 16,
+    gap: 14,
+  },
+  connectHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  connectIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  connectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  connectBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  balanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 14,
+  },
+  balanceItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  balanceDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 32,
+  },
+  balanceLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  balanceValue: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
   },
 });

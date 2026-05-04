@@ -147,6 +147,7 @@ export default function QuoteDetailScreen() {
           quoteId: quote.id,
           contractorName: settings.name || undefined,
           businessName: settings.businessName || undefined,
+          stripeAccountId: settings.stripeAccountId || undefined,
         },
       });
 
