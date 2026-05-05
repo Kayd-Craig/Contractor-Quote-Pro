@@ -1,0 +1,62 @@
+kaydcraig@Kayds-MacBook-Air Contractor-Quote-Pro % git stash pop
+Auto-merging artifacts/mobile/app.json
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   artifacts/mobile/app.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	app.json
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (34efdcccb6504fa59cde3b6e37fe6c54374abcd1)
+kaydcraig@Kayds-MacBook-Air Contractor-Quote-Pro % git stash pop
+No stash entries found.
+kaydcraig@Kayds-MacBook-Air Contractor-Quote-Pro % git add artifacts/mobile/app.json
+git commit -m "Restore EAS project ID and owner"
+git push
+[main b26b8bd] Restore EAS project ID and owner
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 550 bytes | 550.00 KiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/Kayd-Craig/Contractor-Quote-Pro
+   98fe775..b26b8bd  main -> main
+kaydcraig@Kayds-MacBook-Air Contractor-Quote-Pro % pnpm install
+cd artifacts/mobile
+eas build --platform ios --profile production
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 10.33.2 → 10.33.3.   │
+   │   Changelog: https://pnpm.io/v/10.33.3   │
+   │     To update, run: pnpm self-update     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+
+dependencies:
++ stripe 20.0.0
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use …
+└─ Done in 18ms
+Done in 1.2s using pnpm v10.33.2
+
+⚠️ Detected that your app uses Expo Go for development, this is not recommended when building production apps.
+Learn more: https://expo.fyi/why-not-build-expo-go-for-production
+To suppress this warning, set EAS_BUILD_NO_EXPO_GO_WARNING=true.
+
+Project config: Slug for project identified by "extra.eas.projectId" (quick-quote) does not match the "slug" field (quickquote-contractor). Learn more: https://expo.fyi/eas-project-id
+    Error: build command failed.
+kaydcraig@Kayds-MacBook-Air mobile % 

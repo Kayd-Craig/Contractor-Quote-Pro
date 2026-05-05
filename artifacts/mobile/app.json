@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "QuickQuote Contractor",
-    "slug": "quickquote-contractor",
+    "slug": "quick-quote",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
