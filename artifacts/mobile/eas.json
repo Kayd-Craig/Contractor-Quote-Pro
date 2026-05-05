@@ -30,7 +30,11 @@
   },
   "submit": {
     "production": {
-      "ios": {}
+      "ios": {
+        "appleId": "josh4finley5@gmail.com",
+        "appleTeamId": "XN84Y9VW36",
+        "ascAppId": "REPLACE_WITH_ASC_APP_ID"
+      }
     }
   }
 }
