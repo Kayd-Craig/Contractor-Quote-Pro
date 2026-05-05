@@ -46,7 +46,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [homedepot, lowes, all]
+            enum: [homedepot, lowes, amazon, all]
             default: all
           description: Filter by store
       responses:
@@ -217,7 +217,7 @@ components:
           description: Unit of measure (each, sq ft, linear ft, bag, etc.)
         store:
           type: string
-          enum: [homedepot, lowes]
+          enum: [homedepot, lowes, amazon]
         sku:
           type: string
         category:

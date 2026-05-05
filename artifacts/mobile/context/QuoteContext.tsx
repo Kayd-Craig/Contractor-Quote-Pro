@@ -46,7 +46,7 @@ export interface Quote {
   updatedAt: string;
 }
 
-export type PreferredStore = "all" | "homedepot" | "lowes";
+export type PreferredStore = "all" | "homedepot" | "lowes" | "amazon";
 
 export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 

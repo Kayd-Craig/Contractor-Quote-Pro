@@ -12,5 +12,6 @@ export type SearchProductsStore =
 export const SearchProductsStore = {
   homedepot: "homedepot",
   lowes: "lowes",
+  amazon: "amazon",
   all: "all",
 } as const;

@@ -9,7 +9,7 @@ interface MockProduct {
   brand: string;
   price: number;
   unit: string;
-  store: "homedepot" | "lowes";
+  store: "homedepot" | "lowes" | "amazon";
   sku: string;
   category: string;
   inStock: boolean;
@@ -105,6 +105,19 @@ const MOCK_PRODUCTS: MockProduct[] = [
   // Decking
   { id: "hd-110", name: '5/4x6x8 Pressure Treated Deck Board', brand: 'WeatherShield', price: 9.47, contractorPrice: 8.25, unit: 'each', store: 'homedepot', sku: '491741', category: 'Decking', inStock: true },
   { id: "lw-110", name: 'TimberTech Composite Deck Board 12ft', brand: 'TimberTech', price: 28.78, contractorPrice: 25.20, unit: 'each', store: 'lowes', sku: 'TT12CB', category: 'Decking', inStock: true },
+  // Amazon — Tools & Hardware (SKUs are real Amazon ASINs so Add-to-Cart links work)
+  { id: "az-001", name: 'DEWALT 20V MAX Cordless Drill/Driver Kit', brand: 'DEWALT', price: 99.00, unit: 'each', store: 'amazon', sku: 'B00ET5VMTU', category: 'Tools', inStock: true },
+  { id: "az-002", name: 'DEWALT 20V MAX Impact Driver Kit', brand: 'DEWALT', price: 129.00, unit: 'each', store: 'amazon', sku: 'B00IJ0ALYS', category: 'Tools', inStock: true },
+  { id: "az-003", name: 'Stanley FatMax 25-Foot Tape Measure', brand: 'Stanley', price: 19.98, unit: 'each', store: 'amazon', sku: 'B00002X2GE', category: 'Tools', inStock: true },
+  { id: "az-004", name: 'Estwing 16 oz Framing Hammer', brand: 'Estwing', price: 32.99, unit: 'each', store: 'amazon', sku: 'B00009OYGV', category: 'Tools', inStock: true },
+  { id: "az-005", name: 'Klein Tools 11-in-1 Screwdriver/Nut Driver', brand: 'Klein Tools', price: 22.97, unit: 'each', store: 'amazon', sku: 'B000NY6PT2', category: 'Tools', inStock: true },
+  { id: "az-006", name: 'WORKPRO 24" Tool Bag', brand: 'WORKPRO', price: 39.99, unit: 'each', store: 'amazon', sku: 'B07BQR9P29', category: 'Tools', inStock: true },
+  { id: "az-007", name: 'Empire 48" Magnetic Box Level', brand: 'Empire', price: 44.97, unit: 'each', store: 'amazon', sku: 'B0009XOCJK', category: 'Tools', inStock: true },
+  { id: "az-008", name: 'Irwin 6-Piece Vise-Grip Pliers Set', brand: 'Irwin', price: 79.99, unit: 'set', store: 'amazon', sku: 'B0058R3BBM', category: 'Tools', inStock: true },
+  { id: "az-009", name: 'GRK 3" Cabinet Screws 100-Pack', brand: 'GRK', price: 24.95, unit: 'box', store: 'amazon', sku: 'B003BIGE3I', category: 'Hardware', inStock: true },
+  { id: "az-010", name: 'Gorilla Heavy Duty Construction Adhesive 9oz', brand: 'Gorilla', price: 6.99, unit: 'tube', store: 'amazon', sku: 'B005EHO6TE', category: 'Hardware', inStock: true },
+  { id: "az-011", name: '3M Safety Glasses Anti-Fog 12-Pack', brand: '3M', price: 27.97, unit: 'pack', store: 'amazon', sku: 'B07CP1HJLZ', category: 'Safety', inStock: true },
+  { id: "az-012", name: 'Mechanix Wear Original Work Gloves', brand: 'Mechanix Wear', price: 21.99, unit: 'pair', store: 'amazon', sku: 'B007XAZNTI', category: 'Safety', inStock: true },
 ];
 
 router.get("/products/search", (req: Request, res: Response) => {

@@ -37,6 +37,8 @@ const colors = {
     homedepotForeground: "#FFFFFF",
     lowes: "#004990",
     lowesForeground: "#FFFFFF",
+    amazon: "#FF9900",
+    amazonForeground: "#131A22",
   },
   radius: 10,
 };

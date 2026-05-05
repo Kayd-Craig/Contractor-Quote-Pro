@@ -10,12 +10,21 @@ export interface Product {
   brand: string;
   price: number;
   unit: string;
-  store: "homedepot" | "lowes";
+  store: "homedepot" | "lowes" | "amazon";
   sku: string;
   category: string;
   inStock: boolean;
   contractorPrice?: number;
 }
+
+const STORE_DISPLAY: Record<
+  Product["store"],
+  { color: string; textColor: string; name: string }
+> = {
+  homedepot: { color: "#F96302", textColor: "#FFFFFF", name: "Home Depot" },
+  lowes: { color: "#004990", textColor: "#FFFFFF", name: "Lowe's" },
+  amazon: { color: "#FF9900", textColor: "#131A22", name: "Amazon" },
+};
 
 interface Props {
   product: Product;
@@ -27,10 +36,10 @@ interface Props {
 export function ProductCard({ product, onAdd, compact, contractorDiscount = 0 }: Props) {
   const colors = useColors();
 
-  const storeColor =
-    product.store === "homedepot" ? colors.homedepot : colors.lowes;
-  const storeName =
-    product.store === "homedepot" ? "Home Depot" : "Lowe's";
+  const storeMeta = STORE_DISPLAY[product.store] ?? STORE_DISPLAY.homedepot;
+  const storeColor = storeMeta.color;
+  const storeTextColor = storeMeta.textColor;
+  const storeName = storeMeta.name;
 
   const retailPrice = product.contractorPrice ?? product.price;
   const hasAccountDiscount = contractorDiscount > 0;
@@ -50,7 +59,7 @@ export function ProductCard({ product, onAdd, compact, contractorDiscount = 0 }:
       <View style={styles.left}>
         <View style={styles.badges}>
           <View style={[styles.storeBadge, { backgroundColor: storeColor }]}>
-            <Text style={styles.storeBadgeText}>{storeName}</Text>
+            <Text style={[styles.storeBadgeText, { color: storeTextColor }]}>{storeName}</Text>
           </View>
           <Text style={[styles.category, { color: colors.mutedForeground }]}>
             {product.category}
@@ -183,7 +192,6 @@ const styles = StyleSheet.create({
   storeBadgeText: {
     fontSize: 10,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
     letterSpacing: 0.2,
   },
   category: {

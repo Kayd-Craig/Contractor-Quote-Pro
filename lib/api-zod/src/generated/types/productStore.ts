@@ -11,4 +11,5 @@ export type ProductStore = (typeof ProductStore)[keyof typeof ProductStore];
 export const ProductStore = {
   homedepot: "homedepot",
   lowes: "lowes",
+  amazon: "amazon",
 } as const;

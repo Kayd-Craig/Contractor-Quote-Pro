@@ -20,7 +20,7 @@ import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 import { useSearchProducts } from "@workspace/api-client-react";
 
-type StoreFilter = "all" | "homedepot" | "lowes";
+type StoreFilter = "all" | "homedepot" | "lowes" | "amazon";
 type TabMode = "stores" | "products";
 
 export default function SearchScreen() {
@@ -36,7 +36,7 @@ export default function SearchScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
   const { data, isFetching } = useSearchProducts(
-    { q: submitted, store: store as "homedepot" | "lowes" | "all" },
+    { q: submitted, store: store as "homedepot" | "lowes" | "amazon" | "all" },
     {
       query: {
         enabled: tab === "products" && submitted.length >= 2,
@@ -55,6 +55,7 @@ export default function SearchScreen() {
     { label: "All Stores", value: "all", color: colors.accent },
     { label: "Home Depot", value: "homedepot", color: colors.homedepot },
     { label: "Lowe's", value: "lowes", color: colors.lowes },
+    { label: "Amazon", value: "amazon", color: colors.amazon },
   ];
 
   const zipCode = settings.zipCode;

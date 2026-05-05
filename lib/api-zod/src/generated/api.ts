@@ -23,7 +23,7 @@ export const searchProductsQueryStoreDefault = `all`;
 export const SearchProductsQueryParams = zod.object({
   q: zod.coerce.string().describe("Search query"),
   store: zod
-    .enum(["homedepot", "lowes", "all"])
+    .enum(["homedepot", "lowes", "amazon", "all"])
     .default(searchProductsQueryStoreDefault)
     .describe("Filter by store"),
 });
@@ -38,7 +38,7 @@ export const SearchProductsResponse = zod.object({
       unit: zod
         .string()
         .describe("Unit of measure (each, sq ft, linear ft, bag, etc.)"),
-      store: zod.enum(["homedepot", "lowes"]),
+      store: zod.enum(["homedepot", "lowes", "amazon"]),
       sku: zod.string(),
       category: zod.string(),
       inStock: zod.boolean(),

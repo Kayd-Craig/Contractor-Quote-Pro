@@ -44,6 +44,17 @@ export const NEARBY_STORES: NearbyStore[] = [
     storeFinderUrl: (zip) => `https://www.lowes.com/store/?zipCode=${zip}`,
   },
   {
+    id: "amazon",
+    name: "Amazon",
+    color: "#FF9900",
+    textColor: "#131A22",
+    category: "Online Marketplace",
+    description: "Tools, hardware & jobsite supplies — fast Prime delivery",
+    websiteUrl: "https://www.amazon.com",
+    storeFinderUrl: () =>
+      `https://www.amazon.com/s?k=construction+tools&i=tools`,
+  },
+  {
     id: "acehardware",
     name: "Ace Hardware",
     color: "#E51937",

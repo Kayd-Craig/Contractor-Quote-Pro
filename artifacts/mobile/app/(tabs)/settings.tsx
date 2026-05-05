@@ -441,6 +441,7 @@ export default function SettingsScreen() {
                 { key: "all" as PreferredStore, label: "All Stores", icon: "grid" as const, color: colors.accent },
                 { key: "homedepot" as PreferredStore, label: "Home Depot", icon: "home" as const, color: colors.homedepot },
                 { key: "lowes" as PreferredStore, label: "Lowe's", icon: "tool" as const, color: colors.lowes },
+                { key: "amazon" as PreferredStore, label: "Amazon", icon: "shopping-bag" as const, color: colors.amazon },
               ]).map((opt) => {
                 const active = (form.preferredStore || "all") === opt.key;
                 return (
@@ -469,7 +470,7 @@ export default function SettingsScreen() {
         <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Feather name="info" size={13} color={colors.mutedForeground} />
           <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
-            Choose "All Stores" to see products from both Home Depot and Lowe's, or pick one to only show products from that store.
+            Choose "All Stores" to see products from Home Depot, Lowe's, and Amazon, or pick one to only show products from that store.
           </Text>
         </View>
 

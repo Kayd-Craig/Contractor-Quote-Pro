@@ -14,6 +14,7 @@ export type ProductStore = (typeof ProductStore)[keyof typeof ProductStore];
 export const ProductStore = {
   homedepot: "homedepot",
   lowes: "lowes",
+  amazon: "amazon",
 } as const;
 
 export interface Product {
@@ -212,6 +213,7 @@ export type SearchProductsStore =
 export const SearchProductsStore = {
   homedepot: "homedepot",
   lowes: "lowes",
+  amazon: "amazon",
   all: "all",
 } as const;
 

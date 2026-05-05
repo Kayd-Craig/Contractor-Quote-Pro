@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LineItemRow } from "@/components/LineItemRow";
+import { OrderMaterialsModal } from "@/components/OrderMaterialsModal";
 import { FONT_OPTIONS, PaperQuoteView, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
 import { PhotosSection } from "@/components/PhotosSection";
 import type { Product } from "@/components/ProductCard";
@@ -55,6 +56,7 @@ export default function QuoteDetailScreen() {
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
+  const [showOrderMaterials, setShowOrderMaterials] = useState(false);
   const { mutateAsync: createPaymentApi } = useCreatePayment();
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
@@ -319,18 +321,35 @@ export default function QuoteDetailScreen() {
           colors={colors}
         />
         {materials.length > 0 ? (
-          <View style={[styles.itemsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {materials.map((item) => (
-              <LineItemRow
-                key={item.id}
-                item={item}
-                onDelete={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  deleteLineItem(quote.id, item.id);
-                }}
-              />
-            ))}
-          </View>
+          <>
+            <View style={[styles.itemsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {materials.map((item) => (
+                <LineItemRow
+                  key={item.id}
+                  item={item}
+                  onDelete={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    deleteLineItem(quote.id, item.id);
+                  }}
+                />
+              ))}
+            </View>
+            <TouchableOpacity
+              testID="order-materials-btn"
+              style={[styles.orderMaterialsBtn, { backgroundColor: colors.accent + "18", borderColor: colors.accent }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setShowOrderMaterials(true);
+              }}
+              activeOpacity={0.85}
+            >
+              <Feather name="shopping-cart" size={15} color={colors.accent} />
+              <Text style={[styles.orderMaterialsBtnText, { color: colors.accent }]}>
+                Order Materials Online
+              </Text>
+              <Feather name="chevron-right" size={16} color={colors.accent} />
+            </TouchableOpacity>
+          </>
         ) : (
           <EmptySection label="No materials added" icon="package" colors={colors} />
         )}
@@ -707,7 +726,7 @@ export default function QuoteDetailScreen() {
           quoteId={quote.id}
           defaultMarkup={settings.defaultMarkup}
           contractorDiscount={settings.contractorDiscount ?? 0}
-          storeFilter={(settings.preferredStore || "all") as "homedepot" | "lowes" | "all"}
+          storeFilter={(settings.preferredStore || "all") as "homedepot" | "lowes" | "amazon" | "all"}
           onClose={() => setAddMode(null)}
           onAdd={(item) => {
             addLineItem(quote.id, item);
@@ -782,6 +801,15 @@ export default function QuoteDetailScreen() {
           setShowSend(false);
           updateQuote(quote.id, { status: "sent" });
         }}
+      />
+
+      {/* Order materials modal */}
+      <OrderMaterialsModal
+        visible={showOrderMaterials}
+        onClose={() => setShowOrderMaterials(false)}
+        materials={materials}
+        customerName={quote.customerName}
+        jobAddress={quote.jobAddress}
       />
 
       {/* Paper preview modal */}
@@ -998,7 +1026,7 @@ function AddItemModal({
   quoteId: string;
   defaultMarkup: number;
   contractorDiscount: number;
-  storeFilter: "homedepot" | "lowes" | "all";
+  storeFilter: "homedepot" | "lowes" | "amazon" | "all";
   onClose: () => void;
   onAdd: (item: Omit<LineItem, "id">) => void;
   colors: ReturnType<typeof useColors>;
@@ -1566,7 +1594,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     overflow: "hidden",
+    marginBottom: 10,
+  },
+  orderMaterialsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 11,
+    borderRadius: 10,
+    borderWidth: 1,
     marginBottom: 16,
+  },
+  orderMaterialsBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
   emptySection: {
     flexDirection: "row",
