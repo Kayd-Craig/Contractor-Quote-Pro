@@ -87,8 +87,8 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
           markupAmount: totals.markupAmount,
           discountAmount: totals.discountAmount > 0 ? totals.discountAmount : undefined,
           discountType: quote.discountType ?? undefined,
-          taxRate: taxRate > 0 ? taxRate : undefined,
-          taxAmount: totals.taxAmount > 0 ? totals.taxAmount : undefined,
+          taxRate: taxInfo ? taxRate : undefined,
+          taxAmount: taxInfo ? totals.taxAmount : undefined,
           total: totals.total,
           sendMethod: method,
           quoteFont: quote.quoteFont || settings.defaultQuoteFont || "modern",
@@ -191,6 +191,7 @@ export function SendQuoteModal({ visible, quote, onClose, onSent }: Props) {
             maxHeight={260}
             font={quote.quoteFont || settings.defaultQuoteFont || "classic"}
             template={quote.quoteTemplate || settings.defaultQuoteTemplate || "typewriter"}
+            taxStateAbbr={taxInfo?.stateAbbr}
           />
 
           <View style={[styles.pdfBadge, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>

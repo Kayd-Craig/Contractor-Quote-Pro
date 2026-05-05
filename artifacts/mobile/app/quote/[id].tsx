@@ -537,34 +537,25 @@ export default function QuoteDetailScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Tax Row */}
-          {totals.taxRate > 0 && (
+          {/* Tax Row — always show when there are line items */}
+          {quote.lineItems.length > 0 && (
             <View style={styles.summaryEditRow}>
               <View style={styles.summaryEditLeft}>
-                <Text style={styles.summaryEditLabel}>
-                  Tax ({taxInfo?.stateAbbr ?? ""})
+                <Text style={[styles.summaryEditLabel, !taxInfo && { opacity: 0.7 }]}>
+                  {taxInfo ? `Tax (${taxInfo.stateAbbr})` : "Tax"}
                 </Text>
-                <View style={styles.markupBadge}>
-                  <Text style={styles.markupBadgeText}>{totals.taxRate}%</Text>
-                </View>
+                {taxInfo ? (
+                  <View style={styles.markupBadge}>
+                    <Text style={styles.markupBadgeText}>{totals.taxRate}%</Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.resetLink, { fontSize: 10 }]}>
+                    set zip in Settings
+                  </Text>
+                )}
               </View>
-              <Text style={styles.summaryEditValue}>
-                +${totals.taxAmount.toFixed(2)}
-              </Text>
-            </View>
-          )}
-          {totals.taxRate === 0 && taxInfo === null && (
-            <View style={styles.summaryEditRow}>
-              <View style={styles.summaryEditLeft}>
-                <Text style={[styles.summaryEditLabel, { opacity: 0.6 }]}>
-                  Tax
-                </Text>
-                <Text style={[styles.resetLink, { fontSize: 10 }]}>
-                  add zip to address
-                </Text>
-              </View>
-              <Text style={[styles.summaryEditValue, { opacity: 0.5 }]}>
-                --
+              <Text style={[styles.summaryEditValue, !taxInfo && { opacity: 0.5 }]}>
+                {taxInfo ? `+$${totals.taxAmount.toFixed(2)}` : "--"}
               </Text>
             </View>
           )}
@@ -879,6 +870,7 @@ export default function QuoteDetailScreen() {
               createdAt={quote.createdAt}
               font={quote.quoteFont || settings.defaultQuoteFont || "classic"}
               template={quote.quoteTemplate || settings.defaultQuoteTemplate || "typewriter"}
+              taxStateAbbr={taxInfo?.stateAbbr}
             />
           </ScrollView>
           <TouchableOpacity

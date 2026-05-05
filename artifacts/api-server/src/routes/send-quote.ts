@@ -113,9 +113,9 @@ function buildQuoteText(body: {
   if (body.discountAmount && body.discountAmount > 0) {
     lines.push(`  Discount:     -${formatCurrency(body.discountAmount)}`);
   }
-  if (body.taxAmount && body.taxAmount > 0) {
-    const taxLabel = body.taxRate ? `Tax (${body.taxRate}%)` : "Tax";
-    lines.push(`  ${taxLabel}:${" ".repeat(Math.max(1, 14 - taxLabel.length))}${formatCurrency(body.taxAmount)}`);
+  if (body.taxRate !== undefined && body.taxRate !== null) {
+    const taxLabel = `Tax (${body.taxRate}%)`;
+    lines.push(`  ${taxLabel}:${" ".repeat(Math.max(1, 14 - taxLabel.length))}${formatCurrency(body.taxAmount ?? 0)}`);
   }
   lines.push("  ─────────────────────────────────");
   lines.push(`  TOTAL:        ${formatCurrency(body.total)}`);

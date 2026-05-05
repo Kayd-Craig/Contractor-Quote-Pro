@@ -140,6 +140,7 @@ interface Props {
   maxHeight?: number;
   font?: QuoteFont;
   template?: QuoteTemplate;
+  taxStateAbbr?: string;
 }
 
 export function PaperQuoteView({
@@ -156,6 +157,7 @@ export function PaperQuoteView({
   maxHeight,
   font = "classic",
   template = "typewriter",
+  taxStateAbbr,
 }: Props) {
   const materials = lineItems.filter((i) => i.type === "material");
   const labor = lineItems.filter((i) => i.type === "labor");
@@ -384,9 +386,11 @@ export function PaperQuoteView({
             </Text>
           </View>
         )}
-        {totals.taxRate > 0 && (
+        {(totals.taxRate > 0 || taxStateAbbr) && (
           <View style={styles.totalRow}>
-            <Text style={[txt({ color: t.bodySubText })]}>Tax ({totals.taxRate}%)</Text>
+            <Text style={[txt({ color: t.bodySubText })]}>
+              {taxStateAbbr ? `Tax (${taxStateAbbr} ${totals.taxRate}%)` : `Tax (${totals.taxRate}%)`}
+            </Text>
             <Text style={[txt({ textAlign: "right" as const })]}>${totals.taxAmount.toFixed(2)}</Text>
           </View>
         )}

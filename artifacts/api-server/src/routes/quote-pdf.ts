@@ -381,11 +381,12 @@ export function generateQuotePdf(input: QuotePdfInput): Promise<Buffer> {
     const summaryX = leftX + pageWidth - 250;
     const summaryW = 250;
 
+    const hasTaxRow = input.taxRate !== undefined && input.taxRate !== null;
     if (t.totalBg) {
       doc.rect(summaryX - 10, y - 4, summaryW + 20, 
         (materials.length > 0 && labor.length > 0 ? 80 : 60) + 
         (input.discountAmount && input.discountAmount > 0 ? 18 : 0) + 
-        (input.taxAmount && input.taxAmount > 0 ? 18 : 0)
+        (hasTaxRow ? 18 : 0)
       ).fill(t.totalBg);
     }
 
@@ -406,9 +407,9 @@ export function generateQuotePdf(input: QuotePdfInput): Promise<Buffer> {
     if (input.discountAmount && input.discountAmount > 0) {
       summaryRow("Discount", `-${fmt(input.discountAmount)}`, "#3a7a3a");
     }
-    if (input.taxAmount && input.taxAmount > 0) {
-      const taxLabel = input.taxRate ? `Tax (${input.taxRate}%)` : "Tax";
-      summaryRow(taxLabel, fmt(input.taxAmount));
+    if (hasTaxRow) {
+      const taxLabel = `Tax (${input.taxRate}%)`;
+      summaryRow(taxLabel, fmt(input.taxAmount ?? 0));
     }
 
     y += 4;
