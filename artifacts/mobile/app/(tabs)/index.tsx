@@ -77,7 +77,7 @@ export default function QuotesScreen() {
       >
         <View>
           <Text style={[styles.brandName, { color: colors.primary }]}>
-            Quick Quote
+            QuickQuote
           </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             {quotes.length} quote{quotes.length !== 1 ? "s" : ""}

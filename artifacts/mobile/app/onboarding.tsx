@@ -88,7 +88,7 @@ export default function OnboardingScreen() {
           </View>
 
           <Text style={[styles.title, { color: colors.foreground }]}>
-            Welcome to Quick Quote
+            Welcome to QuickQuote Contractor
           </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Set up your business profile to start creating professional quotes for your customers.

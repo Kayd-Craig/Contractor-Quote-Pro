@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Quoter Pro",
-    "slug": "quoter-pro",
+    "name": "QuickQuote Contractor",
+    "slug": "quickquote-contractor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -18,8 +18,8 @@
       "supportsTablet": false,
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "Quick Quote uses your camera to take job-site photos that can be attached to quotes.",
-        "NSPhotoLibraryUsageDescription": "Quick Quote accesses your photo library to attach job-site photos to quotes."
+        "NSCameraUsageDescription": "QuickQuote Contractor uses your camera to take job-site photos that can be attached to quotes.",
+        "NSPhotoLibraryUsageDescription": "QuickQuote Contractor accesses your photo library to attach job-site photos to quotes."
       }
     },
     "android": {
