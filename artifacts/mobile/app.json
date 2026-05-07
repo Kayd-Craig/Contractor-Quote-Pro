@@ -16,7 +16,7 @@
     "ios": {
       "bundleIdentifier": "com.joshworks.quickquote",
       "supportsTablet": false,
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSCameraUsageDescription": "QuickQuote Contractor uses your camera to take job-site photos that can be attached to quotes.",
         "NSPhotoLibraryUsageDescription": "QuickQuote Contractor accesses your photo library to attach job-site photos to quotes."

@@ -38,12 +38,7 @@ export default function OnboardingScreen() {
     if (!name.trim()) {
       newErrors.name = "Your name is required";
     }
-    if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    }
-    if (!zipCode.trim()) {
-      newErrors.zipCode = "Zip code is required for tax calculations";
-    } else if (zipCode.trim().length < 5) {
+    if (zipCode.trim().length > 0 && zipCode.trim().length < 5) {
       newErrors.zipCode = "Please enter a valid 5-digit zip code";
     }
 
@@ -153,7 +148,7 @@ export default function OnboardingScreen() {
                 <Feather name="phone" size={18} color={errors.phone ? colors.destructive : colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.foreground }]}
-                  placeholder="Phone Number *"
+                  placeholder="Phone Number (optional)"
                   placeholderTextColor={colors.mutedForeground}
                   value={phone}
                   onChangeText={(t) => { setPhone(t); setErrors((e) => { const { phone: _, ...rest } = e; return rest; }); }}
@@ -191,7 +186,7 @@ export default function OnboardingScreen() {
                 <Feather name="map-pin" size={18} color={errors.zipCode ? colors.destructive : colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.foreground }]}
-                  placeholder="Zip Code *"
+                  placeholder="Zip Code (optional)"
                   placeholderTextColor={colors.mutedForeground}
                   value={zipCode}
                   onChangeText={(t) => { setZipCode(t.replace(/\D/g, "").slice(0, 5)); setErrors((e) => { const { zipCode: _, ...rest } = e; return rest; }); }}
