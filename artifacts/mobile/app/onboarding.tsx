@@ -35,9 +35,6 @@ export default function OnboardingScreen() {
   function handleGetStarted() {
     const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) {
-      newErrors.name = "Your name is required";
-    }
     if (zipCode.trim().length > 0 && zipCode.trim().length < 5) {
       newErrors.zipCode = "Please enter a valid 5-digit zip code";
     }
@@ -60,6 +57,12 @@ export default function OnboardingScreen() {
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
+  function handleSkip() {
+    setErrors({});
+    updateSettings({ onboardingComplete: true });
+    Haptics.selectionAsync();
   }
 
   return (
@@ -86,7 +89,7 @@ export default function OnboardingScreen() {
             Welcome to QuickQuote Contractor
           </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Set up your business profile to start creating professional quotes for your customers.
+            All fields below are optional. You can skip this screen and start using the app right away — your business info just makes your quotes look more professional.
           </Text>
 
           <View style={styles.formSection}>
@@ -99,7 +102,7 @@ export default function OnboardingScreen() {
                 <Feather name="user" size={18} color={errors.name ? colors.destructive : colors.mutedForeground} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: colors.foreground }]}
-                  placeholder="Your Name *"
+                  placeholder="Your Name (optional)"
                   placeholderTextColor={colors.mutedForeground}
                   value={name}
                   onChangeText={(t) => { setName(t); setErrors((e) => { const { name: _, ...rest } = e; return rest; }); }}
@@ -209,15 +212,27 @@ export default function OnboardingScreen() {
             style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={handleGetStarted}
             activeOpacity={0.85}
+            testID="onboarding-get-started"
           >
             <Text style={[styles.buttonText, { color: colors.primaryForeground }]}>
-              Get Started
+              Save & Continue
             </Text>
             <Feather name="arrow-right" size={20} color={colors.primaryForeground} />
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleSkip}
+            activeOpacity={0.7}
+            testID="onboarding-skip"
+          >
+            <Text style={[styles.skipButtonText, { color: colors.primary }]}>
+              Skip for now
+            </Text>
+          </TouchableOpacity>
+
           <Text style={[styles.footerNote, { color: colors.mutedForeground }]}>
-            You can update this information anytime in Settings.
+            You can add or update this information anytime in Settings.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -311,11 +326,21 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 14,
     marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   buttonText: {
     fontSize: 17,
     fontFamily: "Inter_700Bold",
+  },
+  skipButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    marginBottom: 8,
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
   },
   footerNote: {
     fontSize: 12,
