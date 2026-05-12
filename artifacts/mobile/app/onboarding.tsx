@@ -89,8 +89,31 @@ export default function OnboardingScreen() {
             Welcome to QuickQuote Contractor
           </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            All fields below are optional. You can skip this screen and start using the app right away — your business info just makes your quotes look more professional.
+            All fields below are optional. You can skip this screen and start using the app right away.
           </Text>
+
+          <View style={[styles.disclaimerBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.disclaimerRow}>
+              <Feather name="info" size={14} color={colors.primary} style={styles.disclaimerIcon} />
+              <Text style={[styles.disclaimerText, { color: colors.foreground }]}>
+                <Text style={styles.disclaimerLabel}>Your name, business, phone &amp; email </Text>
+                appear on quotes you send to customers so they know who the bid is from.
+              </Text>
+            </View>
+            <View style={styles.disclaimerRow}>
+              <Feather name="map-pin" size={14} color={colors.primary} style={styles.disclaimerIcon} />
+              <Text style={[styles.disclaimerText, { color: colors.foreground }]}>
+                <Text style={styles.disclaimerLabel}>Your zip code </Text>
+                is used only to find nearby Home Depot, Lowe's, and Amazon stores and to look up local sales tax rates. It is never shared.
+              </Text>
+            </View>
+            <View style={styles.disclaimerRow}>
+              <Feather name="lock" size={14} color={colors.primary} style={styles.disclaimerIcon} />
+              <Text style={[styles.disclaimerText, { color: colors.foreground }]}>
+                Everything you enter stays on this device. We do not collect, store, or share any of it on our servers.
+              </Text>
+            </View>
+          </View>
 
           <View style={styles.formSection}>
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
@@ -331,6 +354,30 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 17,
     fontFamily: "Inter_700Bold",
+  },
+  disclaimerBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 28,
+    gap: 10,
+  },
+  disclaimerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  disclaimerIcon: {
+    marginTop: 2,
+  },
+  disclaimerText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 17,
+  },
+  disclaimerLabel: {
+    fontFamily: "Inter_600SemiBold",
   },
   skipButton: {
     alignItems: "center",
