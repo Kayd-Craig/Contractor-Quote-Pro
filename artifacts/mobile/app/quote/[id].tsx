@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -263,11 +264,18 @@ export default function QuoteDetailScreen() {
         </View>
       </View>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+      >
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
           { paddingBottom: Platform.OS === "web" ? 40 + 34 : 40 + insets.bottom },
         ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         {/* Business / Contractor banner */}
         {(settings.businessName || settings.name || settings.logoUri) && (
@@ -718,6 +726,7 @@ export default function QuoteDetailScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Add Item Modal */}
       {addMode && (
@@ -1139,7 +1148,10 @@ function AddItemModal({
 
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <TouchableOpacity style={styles.modalBackdrop} onPress={onClose} />
         <View
           style={[
@@ -1161,6 +1173,7 @@ function AddItemModal({
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
             contentContainerStyle={styles.modalScroll}
           >
             {/* Material entry mode tabs */}
@@ -1434,7 +1447,7 @@ function AddItemModal({
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

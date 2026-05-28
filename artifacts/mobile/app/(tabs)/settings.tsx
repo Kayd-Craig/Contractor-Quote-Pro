@@ -20,10 +20,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONT_OPTIONS, TEMPLATE_OPTIONS } from "@/components/PaperQuoteView";
-import { ScheduleCalendar } from "@/components/ScheduleCalendar";
-import { ScheduleManager } from "@/components/ScheduleManager";
 import type { ContractorSettings, PreferredStore, QuoteFont, QuoteTemplate } from "@/context/QuoteContext";
-import { useQuotes, DEFAULT_WEEKLY_SCHEDULE, DAYS_ORDER, DAY_LABELS } from "@/context/QuoteContext";
+import { useQuotes } from "@/context/QuoteContext";
 import { useColors } from "@/hooks/useColors";
 import { useConnectOnboard, getConnectDashboard, useGetConnectBalance, useGetConnectStatus } from "@workspace/api-client-react";
 
@@ -35,8 +33,6 @@ export default function SettingsScreen() {
   const [form, setForm] = useState<ContractorSettings>(settings);
   const [saved, setSaved] = useState(false);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
-  const [showSchedule, setShowSchedule] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
@@ -355,7 +351,7 @@ export default function SettingsScreen() {
             label="Zip Code"
             value={form.zipCode}
             onChange={(v) => setForm((f) => ({ ...f, zipCode: v.replace(/\D/g, "").slice(0, 5) }))}
-            placeholder="Enter zip code to find nearby stores"
+            placeholder="Optional — enter to find nearby stores"
             keyboardType="number-pad"
             colors={colors}
           />
@@ -363,65 +359,9 @@ export default function SettingsScreen() {
         <View style={[styles.zipHint, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Feather name="map-pin" size={13} color={colors.mutedForeground} />
           <Text style={[styles.zipHintText, { color: colors.mutedForeground }]}>
-            Your zip code is used in the Materials tab to show hardware stores near you.
+            Optional. Your zip code is used only on your device to (1) find Home Depot, Lowe's, and Amazon stores near you in the Materials tab, and (2) auto-fill the correct local sales tax rate on new quotes. It's never sent to our servers or shared with anyone.
           </Text>
         </View>
-
-        {/* Availability Schedule */}
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
-          AVAILABILITY SCHEDULE
-        </Text>
-        <TouchableOpacity
-          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 8 }]}
-          onPress={() => setShowCalendar(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.scheduleRow}>
-            <View style={[styles.scheduleIcon, { backgroundColor: colors.accent + "18" }]}>
-              <Feather name="grid" size={20} color={colors.accent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.scheduleTitle, { color: colors.foreground }]}>
-                View Month Calendar
-              </Text>
-              <Text style={[styles.scheduleSub, { color: colors.mutedForeground }]}>
-                {(() => {
-                  const scheduledCount = quotes.filter((q) => q.scheduledDate).length;
-                  if (scheduledCount === 0) return "See all upcoming jobs at a glance";
-                  return `${scheduledCount} scheduled job${scheduledCount === 1 ? "" : "s"} total`;
-                })()}
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => setShowSchedule(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.scheduleRow}>
-            <View style={[styles.scheduleIcon, { backgroundColor: colors.primary + "18" }]}>
-              <Feather name="calendar" size={20} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.scheduleTitle, { color: colors.foreground }]}>
-                Working Hours & Days Off
-              </Text>
-              <Text style={[styles.scheduleSub, { color: colors.mutedForeground }]}>
-                {(() => {
-                  const schedule = settings.weeklySchedule ?? DEFAULT_WEEKLY_SCHEDULE;
-                  const activeDays = DAYS_ORDER.filter((d) => schedule[d].enabled);
-                  if (activeDays.length === 0) return "No working days set";
-                  const dayLabels = activeDays.map((d) => DAY_LABELS[d].slice(0, 3));
-                  const blocked = settings.blockedDates?.length ?? 0;
-                  return `${dayLabels.join(", ")}${blocked > 0 ? ` · ${blocked} blocked` : ""}`;
-                })()}
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
-          </View>
-        </TouchableOpacity>
 
         {/* Preferred Store */}
         <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
@@ -861,12 +801,6 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
-
-      {/* Schedule Manager */}
-      <ScheduleManager visible={showSchedule} onClose={() => setShowSchedule(false)} />
-
-      {/* Schedule Calendar */}
-      <ScheduleCalendar visible={showCalendar} onClose={() => setShowCalendar(false)} />
 
       {/* Logo picker bottom sheet */}
       <Modal
